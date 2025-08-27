@@ -1,3 +1,4 @@
 {
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/api/mexc/ticker/route": "app/api/mexc/ticker/route.js"
 }
