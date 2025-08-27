@@ -273,12 +273,33 @@ const TradingPanel = ({ walletConnected, onConnectWallet }) => {
       {/* Connect Wallet */}
       {!walletConnected && (
         <button 
-          className="flex items-center justify-center gap-2 py-3 px-4 bg-[var(--color-surface-elevated)] rounded-lg text-[var(--color-text-secondary)] text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-[var(--color-border)]"
+          className="flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-br from-[var(--color-accent-lime)] to-[var(--color-accent-lime-dark)] text-[var(--color-primary-bg)] rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
           onClick={onConnectWallet}
         >
-          <span>🔗</span>
-          Connect Wallet
+          <span>👻</span>
+          Connect Phantom via DyDx
         </button>
+      )}
+
+      {/* DyDx Account Info */}
+      {walletConnected && (
+        <div className="card-elevated">
+          <div className="text-sm text-[var(--color-text-tertiary)] mb-2">DyDx Account Status</div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-[var(--color-text-tertiary)]">Status</span>
+            <span className="text-xs text-[var(--color-semantic-success)] font-medium">Connected via Phantom</span>
+          </div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-[var(--color-text-tertiary)]">Trading</span>
+            <span className="text-xs text-[var(--color-semantic-success)] font-medium">Ready</span>
+          </div>
+          <button
+            className="btn-secondary w-full text-xs mt-2"
+            onClick={() => window.open('https://trade.dydx.exchange/', '_blank')}
+          >
+            Open DyDx Platform →
+          </button>
+        </div>
       )}
 
       {/* Trade Info */}
