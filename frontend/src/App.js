@@ -361,33 +361,46 @@ const Dashboard = () => {
 
   const handleConnectWallet = async () => {
     try {
+      setIsLoading(true);
+      
       // Try DyDx integration first
       const dydxResult = await dydxService.connectWallet();
       
       if (dydxResult.success) {
         setWalletConnected(true);
         setWalletAddress(dydxResult.address);
-        console.log('Connected to DyDx wallet:', dydxResult.address);
+        setWalletType(dydxResult.type);
+        
+        if (dydxResult.warning) {
+          alert(dydxResult.warning);
+        }
+        
+        console.log('Connected to wallet:', {
+          address: dydxResult.address,
+          type: dydxResult.type
+        });
+        
+        // Get DyDx account info if available
+        if (dydxService.isReadyForTrading()) {
+          try {
+            const accountInfo = await dydxService.getSubaccountInfo();
+            console.log('DyDx account info:', accountInfo);
+          } catch (error) {
+            console.log('Could not fetch DyDx account info:', error.message);
+          }
+        }
+        
         return;
       }
       
-      // Fallback to standard Web3 wallet connection
-      if (window.ethereum) {
-        const accounts = await window.ethereum.request({
-          method: 'eth_requestAccounts'
-        });
-        
-        if (accounts.length > 0) {
-          setWalletConnected(true);
-          setWalletAddress(accounts[0]);
-          console.log('Connected to Web3 wallet:', accounts[0]);
-        }
-      } else {
-        alert('Please install MetaMask, Keplr, or another compatible wallet');
-      }
+      // If DyDx connection failed, show error
+      alert(`Wallet connection failed: ${dydxResult.error}\n\nPlease install Keplr wallet for full DyDx functionality.`);
+      
     } catch (error) {
       console.error('Error connecting wallet:', error);
       alert('Error connecting wallet: ' + error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
