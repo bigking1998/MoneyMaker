@@ -69,13 +69,13 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
           </div>
         </div>
         
-        <p className="text-text-muted">
+        <div className="text-text-muted">
           {loading ? (
             <div className="skeleton h-4 w-24"></div>
           ) : (
             `$${price ? (price * 0.999).toLocaleString('en-US', { minimumFractionDigits: 2 }) : '3,630.00'}`
           )}
-        </p>
+        </div>
       </div>
 
       {/* Quick Stats */}
