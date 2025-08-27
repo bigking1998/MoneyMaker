@@ -21,8 +21,8 @@ interface MarketData {
   isFavorite: boolean;
 }
 
-// MEXC API for real market data
-const MEXC_API_BASE = 'https://api.mexc.com/api/v3';
+// MEXC API through our Next.js API routes
+const MEXC_API_BASE = '/api/mexc';
 
 type SortField = 'symbol' | 'price' | 'change24h' | 'volume24h' | 'marketCap';
 type SortOrder = 'asc' | 'desc';
