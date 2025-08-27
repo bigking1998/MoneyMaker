@@ -60,7 +60,7 @@ export const ExchangeTable: React.FC = () => {
   useEffect(() => {
     const fetchMEXCPrice = async () => {
       try {
-        const response = await fetch(`${MEXC_API_BASE}/ticker/24hr?symbol=ETHUSDT`);
+        const response = await fetch(`${MEXC_API_BASE}/ticker?symbol=ETHUSDT`);
         if (response.ok) {
           const data = await response.json();
           const realPrice = parseFloat(data.lastPrice);
