@@ -283,8 +283,23 @@ const Dashboard = () => {
   const [exchangeData, setExchangeData] = useState([]);
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
-  const [selectedTimeframe, setSelectedTimeframe] = useState("1h");
-  const [isLoading, setIsLoading] = useState(true);
+  const [walletType, setWalletType] = useState("");
+  const [dydxMarkets, setDydxMarkets] = useState([]);
+
+  // Initialize DyDx service
+  useEffect(() => {
+    const initializeDyDx = async () => {
+      try {
+        await dydxService.initializeClient();
+        const markets = await dydxService.getMarkets();
+        setDydxMarkets(markets);
+      } catch (error) {
+        console.error('Error initializing DyDx:', error);
+      }
+    };
+
+    initializeDyDx();
+  }, []);
   const socketRef = useRef(null);
 
   // Initialize WebSocket connection
