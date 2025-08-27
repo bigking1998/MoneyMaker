@@ -42,7 +42,7 @@ export default function MarketPage() {
       setLoading(true);
       try {
         // Fetch 24hr ticker statistics for all symbols
-        const response = await fetch(`${MEXC_API_BASE}/ticker/24hr`);
+        const response = await fetch(`${MEXC_API_BASE}/tickers`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch market data');
