@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useWebSocket } from './useWebSocket';
 
 interface MEXCTicker {
   symbol: string;
@@ -30,6 +29,9 @@ interface MEXCCandle {
   volume: number;
 }
 
+// MEXC Public API endpoints
+const MEXC_API_BASE = 'https://api.mexc.com/api/v3';
+
 export const useMEXCData = (pair: string) => {
   const [ticker, setTicker] = useState<MEXCTicker | null>(null);
   const [orderBook, setOrderBook] = useState<MEXCOrderBook | null>(null);
@@ -37,137 +39,128 @@ export const useMEXCData = (pair: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Mock data for demo - in real implementation, this would connect to MEXC WebSocket
-  const generateMockTicker = useCallback((symbol: string): MEXCTicker => {
-    const basePrices: Record<string, number> = {
-      'BTCUSDT': 97234.56,
-      'ETHUSDT': 3615.86,
-      'SOLUSDT': 211.68,
-      'ADAUSDT': 0.8934,
-      'DOGEUSDT': 0.22201,
-    };
+  // Convert pair format (ETH/USDT -> ETHUSDT)
+  const mexcSymbol = pair.replace('/', '');
 
-    const basePrice = basePrices[symbol.replace('/', '')] || 100;
-    const variation = (Math.random() - 0.5) * 0.1; // ±5% variation
-    const price = basePrice * (1 + variation);
-    const change = (Math.random() - 0.3) * 0.1; // Slightly bullish bias
+  // Fetch real MEXC ticker data
+  const fetchRealTicker = useCallback(async (symbol: string): Promise<MEXCTicker | null> => {
+    try {
+      // Get 24hr ticker statistics
+      const response = await fetch(`${MEXC_API_BASE}/ticker/24hr?symbol=${symbol}`);
+      
+      if (!response.ok) {
+        throw new Error(`MEXC API error: ${response.status}`);
+      }
 
-    return {
-      symbol,
-      price,
-      change: price * change,
-      changePercent: change * 100,
-      high24h: price * 1.05,
-      low24h: price * 0.95,
-      volume24h: Math.random() * 1000000,
-      lastUpdate: Date.now(),
-    };
-  }, []);
-
-  const generateMockOrderBook = useCallback((symbol: string, price: number): MEXCOrderBook => {
-    const bids: [number, number][] = [];
-    const asks: [number, number][] = [];
-
-    // Generate 10 levels of bids and asks
-    for (let i = 0; i < 10; i++) {
-      const bidPrice = price * (1 - (i + 1) * 0.0001);
-      const askPrice = price * (1 + (i + 1) * 0.0001);
-      const bidAmount = Math.random() * 10;
-      const askAmount = Math.random() * 10;
-
-      bids.push([bidPrice, bidAmount]);
-      asks.push([askPrice, askAmount]);
+      const data = await response.json();
+      
+      return {
+        symbol: pair,
+        price: parseFloat(data.lastPrice),
+        change: parseFloat(data.priceChange),
+        changePercent: parseFloat(data.priceChangePercent),
+        high24h: parseFloat(data.highPrice),
+        low24h: parseFloat(data.lowPrice),
+        volume24h: parseFloat(data.volume),
+        lastUpdate: Date.now(),
+      };
+    } catch (error) {
+      console.error('Error fetching MEXC ticker:', error);
+      return null;
     }
+  }, [pair]);
 
-    return {
-      symbol,
-      bids: bids.sort((a, b) => b[0] - a[0]), // Descending price order
-      asks: asks.sort((a, b) => a[0] - b[0]), // Ascending price order
-      lastUpdate: Date.now(),
-    };
-  }, []);
+  // Fetch real MEXC order book data
+  const fetchRealOrderBook = useCallback(async (symbol: string): Promise<MEXCOrderBook | null> => {
+    try {
+      const response = await fetch(`${MEXC_API_BASE}/depth?symbol=${symbol}&limit=10`);
+      
+      if (!response.ok) {
+        throw new Error(`MEXC API error: ${response.status}`);
+      }
 
-  const generateMockCandles = useCallback((symbol: string): MEXCCandle[] => {
-    const candles: MEXCCandle[] = [];
-    const now = Date.now();
-    const basePrices: Record<string, number> = {
-      'BTCUSDT': 97234.56,
-      'ETHUSDT': 3615.86,
-      'SOLUSDT': 211.68,
-      'ADAUSDT': 0.8934,
-      'DOGEUSDT': 0.22201,
-    };
-
-    let currentPrice = basePrices[symbol.replace('/', '')] || 100;
-
-    // Generate 100 1-minute candles
-    for (let i = 100; i >= 0; i--) {
-      const timestamp = now - (i * 60 * 1000);
-      const variation = (Math.random() - 0.5) * 0.02;
-      const open = currentPrice;
-      const close = currentPrice * (1 + variation);
-      const high = Math.max(open, close) * (1 + Math.random() * 0.01);
-      const low = Math.min(open, close) * (1 - Math.random() * 0.01);
-      const volume = Math.random() * 1000;
-
-      candles.push({
-        timestamp,
-        open,
-        high,
-        low,
-        close,
-        volume,
-      });
-
-      currentPrice = close;
+      const data = await response.json();
+      
+      return {
+        symbol: pair,
+        bids: data.bids.map((bid: string[]) => [parseFloat(bid[0]), parseFloat(bid[1])]),
+        asks: data.asks.map((ask: string[]) => [parseFloat(ask[0]), parseFloat(ask[1])]),
+        lastUpdate: Date.now(),
+      };
+    } catch (error) {
+      console.error('Error fetching MEXC orderbook:', error);
+      return null;
     }
+  }, [pair]);
 
-    return candles;
+  // Fetch real MEXC kline/candle data
+  const fetchRealCandles = useCallback(async (symbol: string): Promise<MEXCCandle[]> => {
+    try {
+      const response = await fetch(
+        `${MEXC_API_BASE}/klines?symbol=${symbol}&interval=1m&limit=100`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`MEXC API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      return data.map((kline: string[]) => ({
+        timestamp: parseInt(kline[0]),
+        open: parseFloat(kline[1]),
+        high: parseFloat(kline[2]),
+        low: parseFloat(kline[3]),
+        close: parseFloat(kline[4]),
+        volume: parseFloat(kline[5]),
+      }));
+    } catch (error) {
+      console.error('Error fetching MEXC candles:', error);
+      return [];
+    }
   }, []);
 
-  // Simulate data fetching
+  // Initial data fetch
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    const fetchAllData = async () => {
+      setLoading(true);
+      setError(null);
 
-    const fetchData = async () => {
       try {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 500));
+        const [tickerData, orderBookData, candleData] = await Promise.all([
+          fetchRealTicker(mexcSymbol),
+          fetchRealOrderBook(mexcSymbol),
+          fetchRealCandles(mexcSymbol),
+        ]);
 
-        const mockTicker = generateMockTicker(pair);
-        const mockOrderBook = generateMockOrderBook(pair, mockTicker.price);
-        const mockCandles = generateMockCandles(pair);
-
-        setTicker(mockTicker);
-        setOrderBook(mockOrderBook);
-        setCandles(mockCandles);
+        if (tickerData) setTicker(tickerData);
+        if (orderBookData) setOrderBook(orderBookData);
+        setCandles(candleData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+        setError(err instanceof Error ? err.message : 'Failed to fetch MEXC data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [pair, generateMockTicker, generateMockOrderBook, generateMockCandles]);
+    fetchAllData();
+  }, [mexcSymbol, fetchRealTicker, fetchRealOrderBook, fetchRealCandles]);
 
-  // Simulate real-time updates
+  // Real-time updates every 2 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (ticker) {
-        const updatedTicker = generateMockTicker(pair);
-        setTicker(updatedTicker);
-        
-        if (orderBook) {
-          const updatedOrderBook = generateMockOrderBook(pair, updatedTicker.price);
-          setOrderBook(updatedOrderBook);
+    const interval = setInterval(async () => {
+      try {
+        const tickerData = await fetchRealTicker(mexcSymbol);
+        if (tickerData) {
+          setTicker(tickerData);
         }
+      } catch (error) {
+        console.error('Error updating ticker:', error);
       }
-    }, 2000); // Update every 2 seconds
+    }, 2000);
 
     return () => clearInterval(interval);
-  }, [pair, ticker, orderBook, generateMockTicker, generateMockOrderBook]);
+  }, [mexcSymbol, fetchRealTicker]);
 
   // Extract commonly used values
   const price = ticker?.price;
@@ -198,7 +191,7 @@ export const useMEXCData = (pair: string) => {
     // Methods
     refresh: () => {
       setLoading(true);
-      // Trigger re-fetch
+      // Trigger re-fetch by updating a dependency
     },
   };
 };
