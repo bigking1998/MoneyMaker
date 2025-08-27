@@ -13,7 +13,7 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
   pair = 'ETH/USDT',
   onPairChange 
 }) => {
-  const { price, change, changePercent, loading } = useMEXCData(pair);
+  const { price, change, changePercent, high24h, low24h, volume24h, loading } = useMEXCData(pair);
   const [isPositive, setIsPositive] = useState(true);
 
   useEffect(() => {
