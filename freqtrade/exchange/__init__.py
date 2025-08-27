@@ -23,4 +23,5 @@ from freqtrade.exchange.hitbtc import Hitbtc
 from freqtrade.exchange.huobi import Huobi
 from freqtrade.exchange.kraken import Kraken
 from freqtrade.exchange.kucoin import Kucoin
+from freqtrade.exchange.mexc import Mexc
 from freqtrade.exchange.okx import Okx
