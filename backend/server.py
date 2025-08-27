@@ -16,6 +16,7 @@ import ccxt
 import pandas as pd
 import numpy as np
 from collections import defaultdict
+from datetime import timezone
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
