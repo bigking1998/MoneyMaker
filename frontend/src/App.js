@@ -333,8 +333,13 @@ const Dashboard = () => {
       }
     };
 
-    initializeDyDx();
-  }, []);
+  const handleOpenDyDx = async () => {
+    if (dydxService.isConnected) {
+      await dydxService.openDyDxWithWallet();
+    } else {
+      await dydxService.redirectToDyDx();
+    }
+  };
   const socketRef = useRef(null);
 
   // Initialize WebSocket connection
