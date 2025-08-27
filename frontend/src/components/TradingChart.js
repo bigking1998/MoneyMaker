@@ -22,7 +22,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  TimeScale
+  TimeScale,
+  Filler
 );
 
 const TradingChart = ({ symbol = 'ETH/USD', timeframe = '1h' }) => {
