@@ -81,28 +81,28 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
         <div className="text-center">
-          <p className="text-text-muted text-sm">24h High</p>
-          <p className="text-text-primary font-semibold">
+          <div className="text-text-muted text-sm">24h High</div>
+          <div className="text-text-primary font-semibold">
             {loading ? <div className="skeleton h-4 w-16 mx-auto"></div> : '$3,680.50'}
-          </p>
+          </div>
         </div>
         <div className="text-center">
-          <p className="text-text-muted text-sm">24h Low</p>
-          <p className="text-text-primary font-semibold">
+          <div className="text-text-muted text-sm">24h Low</div>
+          <div className="text-text-primary font-semibold">
             {loading ? <div className="skeleton h-4 w-16 mx-auto"></div> : '$3,520.30'}
-          </p>
+          </div>
         </div>
         <div className="text-center">
-          <p className="text-text-muted text-sm">Volume</p>
-          <p className="text-text-primary font-semibold">
+          <div className="text-text-muted text-sm">Volume</div>
+          <div className="text-text-primary font-semibold">
             {loading ? <div className="skeleton h-4 w-16 mx-auto"></div> : '142.3K ETH'}
-          </p>
+          </div>
         </div>
         <div className="text-center">
-          <p className="text-text-muted text-sm">Market Cap</p>
-          <p className="text-text-primary font-semibold">
+          <div className="text-text-muted text-sm">Market Cap</div>
+          <div className="text-text-primary font-semibold">
             {loading ? <div className="skeleton h-4 w-16 mx-auto"></div> : '$435.2B'}
-          </p>
+          </div>
         </div>
       </div>
     </div>
