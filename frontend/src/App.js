@@ -21,14 +21,14 @@ const queryClient = new QueryClient({
 });
 
 // Header Component
-const Header = ({ walletConnected, onConnectWallet, walletAddress, walletType }) => {
+const Header = ({ walletConnected, onConnectWallet, walletAddress, walletType, onOpenDyDx }) => {
   const getWalletDisplay = () => {
     if (!walletConnected) return null;
     
     const typeDisplay = {
-      'keplr': '🌟 Keplr',
-      'ethereum': '🦊 MetaMask', 
-      'dydx_mnemonic': '🔐 DyDx',
+      'phantom_ethereum': '👻 Phantom (ETH)',
+      'phantom_solana': '👻 Phantom (SOL)',
+      'phantom': '👻 Phantom',
       'default': '💼 Wallet'
     };
     
@@ -48,7 +48,13 @@ const Header = ({ walletConnected, onConnectWallet, walletAddress, walletType })
       {/* Navigation */}
       <nav className="hidden md:flex items-center gap-8">
         <span className="nav-item active">Dashboard</span>
-        <span className="nav-item">Trade</span>
+        <button 
+          className="nav-item cursor-pointer"
+          onClick={onOpenDyDx}
+          title="Open DyDx Platform"
+        >
+          DyDx Trade
+        </button>
         <span className="nav-item">Market</span>
       </nav>
 
@@ -56,7 +62,9 @@ const Header = ({ walletConnected, onConnectWallet, walletAddress, walletType })
       <div className="flex items-center gap-3">
         {walletConnected ? (
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-semantic-warning)] to-[#d97706]"></div>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-semantic-success)] to-[#15803d] flex items-center justify-center">
+              <span className="text-white text-sm">👻</span>
+            </div>
             <div className="flex flex-col">
               <span className="text-sm text-[var(--color-text-primary)] font-medium">
                 {getWalletDisplay()}
@@ -65,10 +73,17 @@ const Header = ({ walletConnected, onConnectWallet, walletAddress, walletType })
                 {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)}
               </span>
             </div>
+            <button
+              className="btn-secondary text-xs px-3 py-1"
+              onClick={onOpenDyDx}
+              title="Open DyDx Trading Platform"
+            >
+              Trade on DyDx
+            </button>
           </div>
         ) : (
           <button className="btn-primary" onClick={onConnectWallet}>
-            Connect Wallet
+            Connect via DyDx
           </button>
         )}
       </div>
