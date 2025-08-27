@@ -29,8 +29,8 @@ interface MEXCCandle {
   volume: number;
 }
 
-// MEXC Public API endpoints
-const MEXC_API_BASE = 'https://api.mexc.com/api/v3';
+// MEXC API through our Next.js API routes (to avoid CORS)
+const MEXC_API_BASE = '/api/mexc';
 
 export const useMEXCData = (pair: string) => {
   const [ticker, setTicker] = useState<MEXCTicker | null>(null);

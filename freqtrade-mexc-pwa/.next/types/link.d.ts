@@ -33,6 +33,7 @@ declare namespace __next_route_internal_types__ {
     | `/market`
     | `/trade`
     | `/api/mexc/ticker`
+    | `/api/mexc/tickers`
   type DynamicRoutes<T extends string = string> = never
 
   type RouteImpl<T> = 
