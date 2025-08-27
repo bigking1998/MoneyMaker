@@ -21,7 +21,20 @@ const queryClient = new QueryClient({
 });
 
 // Header Component
-const Header = ({ walletConnected, onConnectWallet, walletAddress }) => {
+const Header = ({ walletConnected, onConnectWallet, walletAddress, walletType }) => {
+  const getWalletDisplay = () => {
+    if (!walletConnected) return null;
+    
+    const typeDisplay = {
+      'keplr': '🌟 Keplr',
+      'ethereum': '🦊 MetaMask', 
+      'dydx_mnemonic': '🔐 DyDx',
+      'default': '💼 Wallet'
+    };
+    
+    return typeDisplay[walletType] || typeDisplay.default;
+  };
+
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-[var(--color-surface)] rounded-xl mb-6">
       {/* Logo */}
@@ -44,13 +57,18 @@ const Header = ({ walletConnected, onConnectWallet, walletAddress }) => {
         {walletConnected ? (
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-semantic-warning)] to-[#d97706]"></div>
-            <span className="text-sm text-[var(--color-text-tertiary)] font-mono hidden md:block">
-              {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-sm text-[var(--color-text-primary)] font-medium">
+                {getWalletDisplay()}
+              </span>
+              <span className="text-xs text-[var(--color-text-tertiary)] font-mono">
+                {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)}
+              </span>
+            </div>
           </div>
         ) : (
           <button className="btn-primary" onClick={onConnectWallet}>
-            Log in
+            Connect Wallet
           </button>
         )}
       </div>
