@@ -283,6 +283,8 @@ const Dashboard = () => {
   const [exchangeData, setExchangeData] = useState([]);
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
+  const [selectedTimeframe, setSelectedTimeframe] = useState("1h");
+  const [isLoading, setIsLoading] = useState(true);
   const [walletType, setWalletType] = useState("");
   const [dydxMarkets, setDydxMarkets] = useState([]);
 
