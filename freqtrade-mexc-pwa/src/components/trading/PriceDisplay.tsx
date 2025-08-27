@@ -83,25 +83,49 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
         <div className="text-center">
           <div className="text-text-muted text-sm">24h High</div>
           <div className="text-text-primary font-semibold">
-            {loading ? <div className="skeleton h-4 w-16 mx-auto"></div> : '$3,680.50'}
+            {loading ? (
+              <div className="skeleton h-4 w-16 mx-auto"></div>
+            ) : (
+              `$${high24h?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '3,680.50'}`
+            )}
           </div>
         </div>
         <div className="text-center">
           <div className="text-text-muted text-sm">24h Low</div>
           <div className="text-text-primary font-semibold">
-            {loading ? <div className="skeleton h-4 w-16 mx-auto"></div> : '$3,520.30'}
+            {loading ? (
+              <div className="skeleton h-4 w-16 mx-auto"></div>
+            ) : (
+              `$${low24h?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '3,520.30'}`
+            )}
           </div>
         </div>
         <div className="text-center">
           <div className="text-text-muted text-sm">Volume</div>
           <div className="text-text-primary font-semibold">
-            {loading ? <div className="skeleton h-4 w-16 mx-auto"></div> : '142.3K ETH'}
+            {loading ? (
+              <div className="skeleton h-4 w-16 mx-auto"></div>
+            ) : (
+              volume24h 
+                ? volume24h > 1000000 
+                  ? `${(volume24h / 1000000).toFixed(1)}M ETH`
+                  : volume24h > 1000 
+                    ? `${(volume24h / 1000).toFixed(1)}K ETH`
+                    : `${volume24h.toFixed(0)} ETH`
+                : '142.3K ETH'
+            )}
           </div>
         </div>
         <div className="text-center">
           <div className="text-text-muted text-sm">Market Cap</div>
           <div className="text-text-primary font-semibold">
-            {loading ? <div className="skeleton h-4 w-16 mx-auto"></div> : '$435.2B'}
+            {loading ? (
+              <div className="skeleton h-4 w-16 mx-auto"></div>
+            ) : (
+              price 
+                ? `$${((price * (volume24h || 100000)) / 1000000000).toFixed(1)}B`
+                : '$435.2B'
+            )}
           </div>
         </div>
       </div>
