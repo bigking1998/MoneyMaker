@@ -48,7 +48,7 @@ export const useMEXCData = (pair: string) => {
       console.log('Fetching MEXC ticker for:', symbol);
       
       // Get 24hr ticker statistics
-      const response = await fetch(`${MEXC_API_BASE}/ticker/24hr?symbol=${symbol}`);
+      const response = await fetch(`${MEXC_API_BASE}/ticker?symbol=${symbol}`);
       
       if (!response.ok) {
         throw new Error(`MEXC API error: ${response.status} ${response.statusText}`);
