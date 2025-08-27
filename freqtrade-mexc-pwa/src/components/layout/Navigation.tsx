@@ -11,25 +11,25 @@ export const Navigation: React.FC = () => {
 
   const navItems = [
     {
-      href: '/',
+      href: '/' as const,
       label: 'Dashboard',
       icon: BarChart3,
       active: pathname === '/',
     },
     {
-      href: '/trade',
+      href: '/trade' as const,
       label: 'Trade',
       icon: TrendingUp,
       active: pathname === '/trade',
     },
     {
-      href: '/market',
+      href: '/market' as const,
       label: 'Market',
       icon: Wallet,
       active: pathname === '/market',
     },
     {
-      href: '/settings',
+      href: '/settings' as const,
       label: 'Settings',
       icon: Settings,
       active: pathname === '/settings',
