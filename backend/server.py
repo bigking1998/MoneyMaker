@@ -205,16 +205,16 @@ async def update_crypto_data():
         
         # Broadcast updates to WebSocket clients
         if crypto_data_cache:
-            await manager.broadcast(json.dumps({
+            await manager.broadcast({
                 'type': 'crypto_update',
                 'data': dict(list(crypto_data_cache.items())[:20])  # Send top 20
-            }))
+            })
             
         if exchange_prices_cache:
-            await manager.broadcast(json.dumps({
+            await manager.broadcast({
                 'type': 'exchange_update', 
                 'data': dict(exchange_prices_cache)
-            }))
+            })
             
         await asyncio.sleep(30)  # Update every 30 seconds
 
