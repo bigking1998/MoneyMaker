@@ -45,16 +45,19 @@ export const useMEXCData = (pair: string) => {
   // Fetch real MEXC ticker data
   const fetchRealTicker = useCallback(async (symbol: string): Promise<MEXCTicker | null> => {
     try {
+      console.log('Fetching MEXC ticker for:', symbol);
+      
       // Get 24hr ticker statistics
       const response = await fetch(`${MEXC_API_BASE}/ticker/24hr?symbol=${symbol}`);
       
       if (!response.ok) {
-        throw new Error(`MEXC API error: ${response.status}`);
+        throw new Error(`MEXC API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('MEXC API response:', data);
       
-      return {
+      const ticker = {
         symbol: pair,
         price: parseFloat(data.lastPrice),
         change: parseFloat(data.priceChange),
@@ -64,6 +67,9 @@ export const useMEXCData = (pair: string) => {
         volume24h: parseFloat(data.volume),
         lastUpdate: Date.now(),
       };
+      
+      console.log('Processed ticker:', ticker);
+      return ticker;
     } catch (error) {
       console.error('Error fetching MEXC ticker:', error);
       return null;
