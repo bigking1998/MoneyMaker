@@ -92,7 +92,7 @@ const PriceDisplay = ({ symbol = "ETH/USD", price = 3615.86, change = 3.27, subP
 };
 
 // Chart Component
-const Chart = ({ timeframe = "1h", onTimeframeChange }) => {
+const Chart = ({ timeframe = "1h", onTimeframeChange, symbol = "ETH/USD" }) => {
   const timeframes = ['1h', '24h', '1w', '1m'];
   
   return (
@@ -127,9 +127,9 @@ const Chart = ({ timeframe = "1h", onTimeframeChange }) => {
         </button>
       </div>
 
-      {/* Chart Placeholder */}
-      <div className="w-full h-[calc(100%-80px)] bg-[var(--color-primary-bg)] rounded-lg flex items-center justify-center">
-        <div className="text-[var(--color-text-tertiary)]">Chart will be rendered here</div>
+      {/* Trading Chart */}
+      <div className="w-full h-[calc(100%-80px)]">
+        <TradingChart symbol={symbol} timeframe={timeframe} />
       </div>
     </div>
   );
