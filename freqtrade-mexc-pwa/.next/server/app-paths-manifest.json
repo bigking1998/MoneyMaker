@@ -1,5 +1,7 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
   "/market/page": "app/market/page.js",
-  "/api/mexc/klines/route": "app/api/mexc/klines/route.js"
+  "/api/mexc/klines/route": "app/api/mexc/klines/route.js",
+  "/api/mexc/ticker/route": "app/api/mexc/ticker/route.js"
 }
