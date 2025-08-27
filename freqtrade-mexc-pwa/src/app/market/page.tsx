@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Navigation } from '@/components/layout/Navigation';
 import { Card } from '@/components/ui/Card';
@@ -21,78 +21,90 @@ interface MarketData {
   isFavorite: boolean;
 }
 
-const mockMarketData: MarketData[] = [
-  {
-    symbol: 'BTCUSDT',
-    baseAsset: 'BTC',
-    quoteAsset: 'USDT',
-    price: 97234.56,
-    change24h: 2.34,
-    high24h: 98500.00,
-    low24h: 94800.00,
-    volume24h: 1234567890,
-    marketCap: 1920000000000,
-    isFavorite: true,
-  },
-  {
-    symbol: 'ETHUSDT',
-    baseAsset: 'ETH',
-    quoteAsset: 'USDT',
-    price: 3615.86,
-    change24h: 3.27,
-    high24h: 3680.50,
-    low24h: 3520.30,
-    volume24h: 567890123,
-    marketCap: 435200000000,
-    isFavorite: true,
-  },
-  {
-    symbol: 'SOLUSDT',
-    baseAsset: 'SOL',
-    quoteAsset: 'USDT',
-    price: 211.68,
-    change24h: -1.45,
-    high24h: 218.90,
-    low24h: 205.30,
-    volume24h: 234567891,
-    marketCap: 102300000000,
-    isFavorite: false,
-  },
-  {
-    symbol: 'ADAUSDT',
-    baseAsset: 'ADA',
-    quoteAsset: 'USDT',
-    price: 0.8934,
-    change24h: 4.12,
-    high24h: 0.9200,
-    low24h: 0.8650,
-    volume24h: 123456789,
-    marketCap: 31400000000,
-    isFavorite: false,
-  },
-  {
-    symbol: 'DOGEUSDT',
-    baseAsset: 'DOGE',
-    quoteAsset: 'USDT',
-    price: 0.22201,
-    change24h: -2.88,
-    high24h: 0.23100,
-    low24h: 0.21800,
-    volume24h: 987654321,
-    marketCap: 32600000000,
-    isFavorite: false,
-  },
-];
+// MEXC API for real market data
+const MEXC_API_BASE = 'https://api.mexc.com/api/v3';
 
 type SortField = 'symbol' | 'price' | 'change24h' | 'volume24h' | 'marketCap';
 type SortOrder = 'asc' | 'desc';
 
 export default function MarketPage() {
+  const [marketData, setMarketData] = useState<MarketData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'favorites' | 'spot' | 'futures'>('all');
-  const [sortField, setSortField] = useState<SortField>('marketCap');
+  const [sortField, setSortField] = useState<SortField>('volume24h');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [favorites, setFavorites] = useState<string[]>(['BTCUSDT', 'ETHUSDT']);
+
+  // Fetch real MEXC market data
+  useEffect(() => {
+    const fetchMarketData = async () => {
+      setLoading(true);
+      try {
+        // Fetch 24hr ticker statistics for all symbols
+        const response = await fetch(`${MEXC_API_BASE}/ticker/24hr`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch market data');
+        }
+
+        const data = await response.json();
+        
+        // Filter for USDT pairs and convert to our format
+        const usdtPairs = data
+          .filter((ticker: any) => ticker.symbol.endsWith('USDT'))
+          .slice(0, 50) // Limit to top 50 for performance
+          .map((ticker: any) => ({
+            symbol: ticker.symbol,
+            baseAsset: ticker.symbol.replace('USDT', ''),
+            quoteAsset: 'USDT',
+            price: parseFloat(ticker.lastPrice),
+            change24h: parseFloat(ticker.priceChangePercent),
+            high24h: parseFloat(ticker.highPrice),
+            low24h: parseFloat(ticker.lowPrice),
+            volume24h: parseFloat(ticker.volume),
+            isFavorite: favorites.includes(ticker.symbol),
+          }));
+
+        setMarketData(usdtPairs);
+      } catch (error) {
+        console.error('Error fetching market data:', error);
+        // Set some default pairs if API fails
+        setMarketData([
+          {
+            symbol: 'BTCUSDT',
+            baseAsset: 'BTC',
+            quoteAsset: 'USDT',
+            price: 97000,
+            change24h: 2.34,
+            high24h: 98500,
+            low24h: 94800,
+            volume24h: 15000,
+            isFavorite: true,
+          },
+          {
+            symbol: 'ETHUSDT',
+            baseAsset: 'ETH',
+            quoteAsset: 'USDT',
+            price: 3600,
+            change24h: 3.27,
+            high24h: 3680,
+            low24h: 3520,
+            volume24h: 85000,
+            isFavorite: true,
+          },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMarketData();
+    
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchMarketData, 30000);
+    return () => clearInterval(interval);
+  }, [favorites]);
 
   const toggleFavorite = (symbol: string) => {
     setFavorites(prev => 
@@ -111,7 +123,7 @@ export default function MarketPage() {
     }
   };
 
-  const filteredAndSortedData = mockMarketData
+  const filteredAndSortedData = marketData
     .filter(item => {
       const matchesSearch = item.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.baseAsset.toLowerCase().includes(searchTerm.toLowerCase());
@@ -149,18 +161,10 @@ export default function MarketPage() {
       return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
     });
 
-  const formatMarketCap = (value: number) => {
-    if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
-    if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
-    if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
-    return `$${value.toLocaleString()}`;
-  };
-
   const formatVolume = (value: number) => {
-    if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
-    if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
-    if (value >= 1e3) return `$${(value / 1e3).toFixed(1)}K`;
-    return `$${value.toLocaleString()}`;
+    if (value >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
+    if (value >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
+    return value.toFixed(0);
   };
 
   return (
@@ -174,20 +178,36 @@ export default function MarketPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <Card>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-text-primary">3,021</div>
-                  <div className="text-sm text-text-muted">Total Markets</div>
+                  <div className="text-2xl font-bold text-text-primary">
+                    {loading ? '...' : marketData.length}
+                  </div>
+                  <div className="text-sm text-text-muted">Markets Tracked</div>
                 </div>
               </Card>
               <Card>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-success">+2.34%</div>
-                  <div className="text-sm text-text-muted">Market Change</div>
+                  <div className={`text-2xl font-bold ${
+                    marketData.length > 0 && marketData.filter(m => m.change24h > 0).length > marketData.length / 2
+                      ? 'text-success'
+                      : 'text-danger'
+                  }`}>
+                    {loading ? '...' : marketData.length > 0 
+                      ? `${((marketData.filter(m => m.change24h > 0).length / marketData.length) * 100).toFixed(0)}%`
+                      : '0%'
+                    }
+                  </div>
+                  <div className="text-sm text-text-muted">Markets Rising</div>
                 </div>
               </Card>
               <Card>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-text-primary">$2.4T</div>
-                  <div className="text-sm text-text-muted">Total Volume 24h</div>
+                  <div className="text-2xl font-bold text-text-primary">
+                    {loading ? '...' : marketData.length > 0
+                      ? `${(marketData.reduce((sum, m) => sum + m.volume24h, 0) / 1e6).toFixed(1)}M`
+                      : '0'
+                    }
+                  </div>
+                  <div className="text-sm text-text-muted">Total Volume (24h)</div>
                 </div>
               </Card>
             </div>
@@ -265,85 +285,107 @@ export default function MarketPage() {
                   Volume
                   {sortField === 'volume24h' && <ArrowUpDown className="w-3 h-3" />}
                 </button>
-                <button
-                  onClick={() => handleSort('marketCap')}
-                  className="flex items-center gap-1 hover:text-text-primary transition-colors text-right justify-end"
-                >
-                  Market Cap
-                  {sortField === 'marketCap' && <ArrowUpDown className="w-3 h-3" />}
-                </button>
+                <div className="text-right">Actions</div>
               </div>
 
-              {/* Table Body */}
-              <div className="space-y-2">
-                {filteredAndSortedData.map((item) => (
-                  <div
-                    key={item.symbol}
-                    className="grid grid-cols-6 gap-4 py-3 hover:bg-bg-elevated rounded-lg px-3 -mx-3 transition-colors cursor-pointer group"
-                  >
-                    {/* Market */}
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(item.symbol);
-                        }}
-                        className={`w-4 h-4 ${favorites.includes(item.symbol) ? 'text-yellow-400' : 'text-text-muted group-hover:text-text-tertiary'}`}
-                      >
-                        <Star className="w-4 h-4" fill={favorites.includes(item.symbol) ? 'currentColor' : 'none'} />
-                      </button>
-                      <div>
-                        <div className="font-medium text-text-primary">{item.baseAsset}</div>
-                        <div className="text-xs text-text-muted">{item.quoteAsset}</div>
+              {/* Loading State */}
+              {loading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="grid grid-cols-6 gap-4 py-3">
+                      <div className="skeleton h-4 w-16"></div>
+                      <div className="skeleton h-4 w-12 ml-auto"></div>
+                      <div className="skeleton h-4 w-12 ml-auto"></div>
+                      <div className="skeleton h-4 w-20 ml-auto"></div>
+                      <div className="skeleton h-4 w-16 ml-auto"></div>
+                      <div className="skeleton h-4 w-8 ml-auto"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* Table Body */
+                <div className="space-y-2">
+                  {filteredAndSortedData.map((item) => (
+                    <div
+                      key={item.symbol}
+                      className="grid grid-cols-6 gap-4 py-3 hover:bg-bg-elevated rounded-lg px-3 -mx-3 transition-colors cursor-pointer group"
+                    >
+                      {/* Market */}
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(item.symbol);
+                          }}
+                          className={`w-4 h-4 ${favorites.includes(item.symbol) ? 'text-yellow-400' : 'text-text-muted group-hover:text-text-tertiary'}`}
+                        >
+                          <Star className="w-4 h-4" fill={favorites.includes(item.symbol) ? 'currentColor' : 'none'} />
+                        </button>
+                        <div>
+                          <div className="font-medium text-text-primary">{item.baseAsset}</div>
+                          <div className="text-xs text-text-muted">{item.quoteAsset}</div>
+                        </div>
+                      </div>
+
+                      {/* Price */}
+                      <div className="text-right">
+                        <div className="font-medium text-text-primary">
+                          ${item.price < 1 
+                            ? item.price.toFixed(6) 
+                            : item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                      </div>
+
+                      {/* 24h Change */}
+                      <div className="text-right">
+                        <div className={`flex items-center justify-end gap-1 ${
+                          item.change24h >= 0 ? 'text-success' : 'text-danger'
+                        }`}>
+                          {item.change24h >= 0 ? (
+                            <TrendingUp className="w-3 h-3" />
+                          ) : (
+                            <TrendingDown className="w-3 h-3" />
+                          )}
+                          <span className="font-medium">
+                            {item.change24h >= 0 ? '+' : ''}{item.change24h.toFixed(2)}%
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 24h High/Low */}
+                      <div className="text-right text-sm">
+                        <div className="text-text-primary">${item.high24h.toLocaleString()}</div>
+                        <div className="text-text-muted">${item.low24h.toLocaleString()}</div>
+                      </div>
+
+                      {/* Volume */}
+                      <div className="text-right">
+                        <div className="text-text-primary font-medium">
+                          {formatVolume(item.volume24h)} {item.baseAsset}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="text-right">
+                        <Button variant="ghost" size="sm" className="text-accent-lime hover:text-accent-lime-hover">
+                          Trade
+                        </Button>
                       </div>
                     </div>
+                  ))}
+                </div>
+              )}
 
-                    {/* Price */}
-                    <div className="text-right">
-                      <div className="font-medium text-text-primary">
-                        ${item.price < 1 
-                          ? item.price.toFixed(6) 
-                          : item.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                      </div>
-                    </div>
-
-                    {/* 24h Change */}
-                    <div className="text-right">
-                      <div className={`flex items-center justify-end gap-1 ${
-                        item.change24h >= 0 ? 'text-success' : 'text-danger'
-                      }`}>
-                        {item.change24h >= 0 ? (
-                          <TrendingUp className="w-3 h-3" />
-                        ) : (
-                          <TrendingDown className="w-3 h-3" />
-                        )}
-                        <span className="font-medium">
-                          {item.change24h >= 0 ? '+' : ''}{item.change24h.toFixed(2)}%
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* 24h High/Low */}
-                    <div className="text-right text-sm">
-                      <div className="text-text-primary">${item.high24h.toLocaleString()}</div>
-                      <div className="text-text-muted">${item.low24h.toLocaleString()}</div>
-                    </div>
-
-                    {/* Volume */}
-                    <div className="text-right">
-                      <div className="text-text-primary font-medium">
-                        {formatVolume(item.volume24h)}
-                      </div>
-                    </div>
-
-                    {/* Market Cap */}
-                    <div className="text-right">
-                      <div className="text-text-primary font-medium">
-                        {item.marketCap ? formatMarketCap(item.marketCap) : '--'}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              {/* Footer */}
+              <div className="mt-6 pt-4 border-t border-border">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-text-muted">
+                    Live data from MEXC API • Updates every 30 seconds
+                  </span>
+                  <span className="text-accent-lime">
+                    {filteredAndSortedData.length} markets shown
+                  </span>
+                </div>
               </div>
             </Card>
           </div>
