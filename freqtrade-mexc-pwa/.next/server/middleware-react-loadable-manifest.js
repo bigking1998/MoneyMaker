@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST="{\"components/trading/TradingChart.tsx -> lightweight-charts\":{\"id\":\"components/trading/TradingChart.tsx -> lightweight-charts\",\"files\":[\"static/chunks/_app-pages-browser_node_modules_lightweight-charts_dist_lightweight-charts_development_mjs.js\"]}}"

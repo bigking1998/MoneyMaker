@@ -102,24 +102,16 @@ export const useMEXCData = (pair: string) => {
   // Fetch real MEXC kline/candle data
   const fetchRealCandles = useCallback(async (symbol: string): Promise<MEXCCandle[]> => {
     try {
-      const response = await fetch(
-        `${MEXC_API_BASE}/klines?symbol=${symbol}&interval=1m&limit=100`
-      );
+      const response = await fetch(`${MEXC_API_BASE}/klines?symbol=${symbol}&interval=1h&limit=100`);
       
       if (!response.ok) {
         throw new Error(`MEXC API error: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('Fetched kline data:', data.length, 'candles');
       
-      return data.map((kline: string[]) => ({
-        timestamp: parseInt(kline[0]),
-        open: parseFloat(kline[1]),
-        high: parseFloat(kline[2]),
-        low: parseFloat(kline[3]),
-        close: parseFloat(kline[4]),
-        volume: parseFloat(kline[5]),
-      }));
+      return data;
     } catch (error) {
       console.error('Error fetching MEXC candles:', error);
       return [];
