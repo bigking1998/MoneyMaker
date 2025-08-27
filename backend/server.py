@@ -48,10 +48,11 @@ class ConnectionManager:
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
         
-    async def broadcast(self, message: str):
+    async def broadcast(self, message: dict):
+        message_str = json.dumps(message, default=str)  # Convert datetime to string
         for connection in self.active_connections:
             try:
-                await connection.send_text(message)
+                await connection.send_text(message_str)
             except:
                 # Remove broken connections
                 self.active_connections.remove(connection)
