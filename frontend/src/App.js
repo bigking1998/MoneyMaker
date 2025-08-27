@@ -474,6 +474,7 @@ const Dashboard = () => {
         onConnectWallet={handleConnectWallet}
         walletAddress={walletAddress}
         walletType={walletType}
+        onOpenDyDx={handleOpenDyDx}
       />
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
