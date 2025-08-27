@@ -1,79 +1,19 @@
-// DyDx Integration Utilities - Official v4 Implementation with Fallbacks
-
-// Try to import DyDx v4 client, with graceful fallback
-let CompositeClient, Network, LocalWallet, BECH32_PREFIX;
-let isDyDxAvailable = false;
-
-try {
-  const dydxModule = require('@dydxprotocol/v4-client-js');
-  CompositeClient = dydxModule.CompositeClient;
-  Network = dydxModule.Network;  
-  LocalWallet = dydxModule.LocalWallet;
-  BECH32_PREFIX = dydxModule.BECH32_PREFIX || 'dydx';
-  isDyDxAvailable = true;
-  console.log('DyDx v4 client loaded successfully');
-} catch (error) {
-  console.warn('DyDx v4 client not available, using fallback mode:', error.message);
-  isDyDxAvailable = false;
-}
+// DyDx Integration Utilities - Browser-Compatible Implementation
 
 class DyDxService {
   constructor() {
-    this.client = null;
     this.wallet = null;
     this.isConnected = false;
     this.subaccountNumber = 0;
-    this.isDyDxAvailable = isDyDxAvailable;
   }
 
   async initializeClient() {
     try {
-      if (!this.isDyDxAvailable) {
-        console.log('DyDx client initialized in fallback mode');
-        return true;
-      }
-
-      console.log('Initializing DyDx v4 client...');
-      
-      // Use testnet for development
-      const network = Network?.testnet ? Network.testnet() : 'testnet';
-      this.client = await CompositeClient.connect(network);
-      
-      console.log('DyDx v4 client initialized successfully');
+      console.log('DyDx service initialized in browser mode');
       return true;
     } catch (error) {
-      console.error('Error initializing DyDx client:', error);
-      this.isDyDxAvailable = false;
+      console.error('Error initializing DyDx service:', error);
       return false;
-    }
-  }
-
-  async connectWithMnemonic(mnemonic) {
-    try {
-      if (!this.isDyDxAvailable) {
-        return { 
-          success: false, 
-          error: 'DyDx v4 client not available' 
-        };
-      }
-
-      if (!this.client) {
-        await this.initializeClient();
-      }
-
-      console.log('Creating wallet from mnemonic...');
-      this.wallet = await LocalWallet.fromMnemonic(mnemonic, BECH32_PREFIX);
-      this.isConnected = true;
-
-      console.log('Wallet created successfully:', this.wallet.address);
-      return { 
-        success: true, 
-        address: this.wallet.address,
-        type: 'dydx_mnemonic'
-      };
-    } catch (error) {
-      console.error('Error connecting with mnemonic:', error);
-      return { success: false, error: error.message };
     }
   }
 
@@ -157,10 +97,6 @@ class DyDxService {
             };
             this.isConnected = true;
             
-            if (!this.client && this.isDyDxAvailable) {
-              await this.initializeClient();
-            }
-            
             return { 
               success: true, 
               address: accounts[0].address,
@@ -180,7 +116,6 @@ class DyDxService {
           });
           
           if (accounts.length > 0) {
-            // Note: This is a fallback - for full DyDx functionality, users need a Cosmos wallet
             this.wallet = {
               address: accounts[0],
               provider: window.ethereum,
@@ -197,25 +132,6 @@ class DyDxService {
           }
         } catch (ethError) {
           console.log('Ethereum wallet connection failed:', ethError.message);
-        }
-      }
-      
-      // Method 3: Offer mnemonic connection for advanced users
-      if (this.isDyDxAvailable) {
-        const useMnemonic = window.confirm(
-          'No supported wallet found. Would you like to connect using a mnemonic phrase?\n\n' +
-          '⚠️ WARNING: Only for advanced users and testing purposes.'
-        );
-        
-        if (useMnemonic) {
-          const mnemonic = window.prompt(
-            'Enter your DyDx mnemonic phrase (24 words):\n\n' +
-            '⚠️ WARNING: Only enter this on trusted devices. Never share your mnemonic!'
-          );
-          
-          if (mnemonic && mnemonic.trim()) {
-            return await this.connectWithMnemonic(mnemonic.trim());
-          }
         }
       }
       
@@ -240,25 +156,6 @@ class DyDxService {
     }
   }
 
-  async getAccountInfo(address = null) {
-    if (!this.isDyDxAvailable || !this.client) {
-      return null;
-    }
-
-    try {
-      const targetAddress = address || this.wallet?.address;
-      if (!targetAddress) {
-        throw new Error('No wallet address available');
-      }
-
-      const account = await this.client.validatorClient.get.getAccount(targetAddress);
-      return account;
-    } catch (error) {
-      console.error('Error getting account info:', error);
-      return null;
-    }
-  }
-
   async getSubaccountInfo(address = null, subaccountNumber = 0) {
     try {
       const targetAddress = address || this.wallet?.address;
@@ -266,29 +163,15 @@ class DyDxService {
         throw new Error('No wallet address available');
       }
 
-      if (this.isDyDxAvailable && this.client) {
-        const subaccount = await this.client.indexerClient.account.getSubaccount(
-          targetAddress,
-          subaccountNumber
-        );
-        
-        return {
-          equity: subaccount?.equity || '0',
-          freeCollateral: subaccount?.freeCollateral || '0',
-          marginUsage: subaccount?.marginUsage || '0',
-          positions: subaccount?.openPerpetualPositions || []
-        };
-      } else {
-        // Fallback demo data
-        return {
-          equity: '10000.00',
-          freeCollateral: '8500.00',
-          marginUsage: '15.0',
-          positions: [
-            { market: 'ETH-USD', size: '5.0', side: 'LONG', unrealizedPnl: '156.78' }
-          ]
-        };
-      }
+      // Demo data for now - would integrate with actual DyDx API
+      return {
+        equity: '10000.00',
+        freeCollateral: '8500.00',
+        marginUsage: '15.0',
+        positions: [
+          { market: 'ETH-USD', size: '5.0', side: 'LONG', unrealizedPnl: '156.78' }
+        ]
+      };
     } catch (error) {
       console.error('Error getting subaccount info:', error);
       return {
@@ -302,33 +185,27 @@ class DyDxService {
 
   async getMarkets() {
     try {
-      if (this.isDyDxAvailable && this.client) {
-        await this.initializeClient();
-        const markets = await this.client.indexerClient.markets.getPerpetualMarkets();
-        return markets?.markets || [];
-      } else {
-        // Fallback demo data
-        return [
-          { 
-            ticker: 'ETH-USD', 
-            oraclePrice: '3615.86',
-            priceChange24H: '3.27',
-            volume24H: '2500000'
-          },
-          { 
-            ticker: 'BTC-USD', 
-            oraclePrice: '65420.50',
-            priceChange24H: '-1.45',
-            volume24H: '15000000'
-          },
-          { 
-            ticker: 'SOL-USD', 
-            oraclePrice: '145.23',
-            priceChange24H: '5.67',
-            volume24H: '850000'
-          }
-        ];
-      }
+      // Demo markets data - would fetch from actual DyDx API
+      return [
+        { 
+          ticker: 'ETH-USD', 
+          oraclePrice: '3615.86',
+          priceChange24H: '3.27',
+          volume24H: '2500000'
+        },
+        { 
+          ticker: 'BTC-USD', 
+          oraclePrice: '65420.50',
+          priceChange24H: '-1.45',
+          volume24H: '15000000'
+        },
+        { 
+          ticker: 'SOL-USD', 
+          oraclePrice: '145.23',
+          priceChange24H: '5.67',
+          volume24H: '850000'
+        }
+      ];
     } catch (error) {
       console.error('Error getting markets:', error);
       return [];
@@ -341,7 +218,7 @@ class DyDxService {
     }
 
     if (!this.isReadyForTrading()) {
-      throw new Error('Trading requires Keplr wallet or mnemonic connection');
+      throw new Error('Trading requires Keplr wallet for full DyDx functionality');
     }
 
     try {
@@ -357,30 +234,20 @@ class DyDxService {
         clientId = Date.now()
       } = orderParams;
 
-      // Demo implementation - real implementation would require proper order construction
-      if (this.isDyDxAvailable && this.client) {
-        console.log('Placing order with DyDx v4 client...');
-        
-        return {
-          success: true,
-          orderId: `dydx_order_${clientId}`,
-          message: 'Order placed successfully (demo implementation)',
-          details: {
-            market,
-            side,
-            size,
-            price,
-            orderType,
-            timeInForce
-          }
-        };
-      } else {
-        return {
-          success: true,
-          orderId: `demo_order_${clientId}`,
-          message: 'Demo order placed (DyDx client not available)'
-        };
-      }
+      // Demo implementation - real implementation would use DyDx v4 client
+      return {
+        success: true,
+        orderId: `dydx_order_${clientId}`,
+        message: 'Order placed successfully (demo implementation)',
+        details: {
+          market,
+          side,
+          size,
+          price,
+          orderType,
+          timeInForce
+        }
+      };
       
     } catch (error) {
       console.error('Error placing order:', error);
@@ -402,14 +269,12 @@ class DyDxService {
     return {
       isConnected: this.isConnected,
       address: this.wallet?.address,
-      type: this.wallet?.type,
-      isDyDxAvailable: this.isDyDxAvailable
+      type: this.wallet?.type
     };
   }
 
   isReadyForTrading() {
-    return this.isConnected && 
-           (this.wallet?.type === 'dydx_mnemonic' || this.wallet?.type === 'keplr');
+    return this.isConnected && this.wallet?.type === 'keplr';
   }
 
   getConnectionInstructions() {
@@ -425,11 +290,6 @@ class DyDxService {
         description: 'Limited functionality, viewing only',
         url: 'https://metamask.io/',
         supported: true
-      },
-      mnemonic: {
-        name: 'Mnemonic Phrase',
-        description: 'Advanced users only',
-        supported: this.isDyDxAvailable
       }
     };
   }
@@ -462,6 +322,5 @@ export const getDyDxMarketColor = (priceChange) => {
 
 export const SUPPORTED_WALLETS = {
   KEPLR: 'keplr',
-  MNEMONIC: 'dydx_mnemonic', 
   ETHEREUM: 'ethereum'
 };
