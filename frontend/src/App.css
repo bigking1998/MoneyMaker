@@ -1,34 +1,74 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* LumaTrade Application Styles */
+
+.App {
+  text-align: left;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Global overrides for React components */
+button:focus {
+  outline: 2px solid var(--color-accent-lime);
+  outline-offset: 2px;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+/* Custom component styles */
+.trading-pair-icon {
+  background: linear-gradient(135deg, var(--color-semantic-info) 0%, #1d4ed8 100%);
 }
 
-.App-link {
-    color: #61dafb;
+.wallet-avatar {
+  background: linear-gradient(135deg, var(--color-semantic-warning) 0%, #d97706 100%);
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* Animation states */
+.loading-state {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.error-state {
+  color: var(--color-semantic-danger);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.success-state {
+  color: var(--color-semantic-success);
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+/* PWA specific styles */
+@media (display-mode: standalone) {
+  .App {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) {
+  .btn-primary:hover {
+    transform: none;
+  }
+  
+  .nav-item:hover {
+    background: transparent;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: #666666;
+    --color-text-tertiary: #cccccc;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
