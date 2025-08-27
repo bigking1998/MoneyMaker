@@ -286,10 +286,10 @@ async def create_trade(trade_data: dict):
     await db.trades.insert_one(trade.dict())
     
     # Broadcast trade update
-    await manager.broadcast(json.dumps({
+    await manager.broadcast({
         'type': 'trade_update',
         'data': trade.dict()
-    }))
+    })
     
     return trade
 
