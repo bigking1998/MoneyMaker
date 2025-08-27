@@ -450,6 +450,7 @@ const Dashboard = () => {
         walletConnected={walletConnected}
         onConnectWallet={handleConnectWallet}
         walletAddress={walletAddress}
+        walletType={walletType}
       />
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
