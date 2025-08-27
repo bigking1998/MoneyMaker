@@ -726,6 +726,9 @@ video {
 .mt-8 {
   margin-top: 2rem;
 }
+.ml-auto {
+  margin-left: auto;
+}
 .block {
   display: block;
 }
@@ -815,6 +818,9 @@ video {
 }
 .w-full {
   width: 100%;
+}
+.w-20 {
+  width: 5rem;
 }
 .min-w-0 {
   min-width: 0px;
