@@ -114,7 +114,7 @@ EXCHANGES = {
     'binance': ccxt.binance({'sandbox': False, 'enableRateLimit': True}),
     'okx': ccxt.okx({'sandbox': False, 'enableRateLimit': True}),
     'bybit': ccxt.bybit({'sandbox': False, 'enableRateLimit': True}),
-    'coinbase': ccxt.coinbasepro({'sandbox': False, 'enableRateLimit': True}),
+    'kraken': ccxt.kraken({'sandbox': False, 'enableRateLimit': True}),
 }
 
 # Crypto data fetching functions
