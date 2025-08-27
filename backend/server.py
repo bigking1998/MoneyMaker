@@ -346,7 +346,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     'type': 'initial_data',
                     'crypto_data': dict(list(crypto_data_cache.items())[:20]),
                     'exchange_data': dict(exchange_prices_cache)
-                }))
+                }, default=str))
                 
     except WebSocketDisconnect:
         manager.disconnect(websocket)
