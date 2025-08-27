@@ -9,51 +9,54 @@ import { clsx } from 'clsx';
 export const Navigation: React.FC = () => {
   const pathname = usePathname();
 
-  const navItems = [
-    {
-      href: '/' as const,
-      label: 'Dashboard',
-      icon: BarChart3,
-      active: pathname === '/',
-    },
-    {
-      href: '/trade' as const,
-      label: 'Trade',
-      icon: TrendingUp,
-      active: pathname === '/trade',
-    },
-    {
-      href: '/market' as const,
-      label: 'Market',
-      icon: Wallet,
-      active: pathname === '/market',
-    },
-    {
-      href: '/settings' as const,
-      label: 'Settings',
-      icon: Settings,
-      active: pathname === '/settings',
-    },
-  ];
-
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-bg-surface border-t border-border md:hidden">
       <div className="flex items-center justify-around py-2">
-        {navItems.map(({ href, label, icon: Icon, active }) => (
-          <Link
-            key={href}
-            href={href}
-            className={clsx(
-              'flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200',
-              active
-                ? 'text-accent-lime bg-accent-lime/10'
-                : 'text-text-tertiary hover:text-text-primary hover:bg-bg-elevated'
-            )}
-          >
-            <Icon className="w-5 h-5" />
-            <span className="text-xs font-medium">{label}</span>
-          </Link>
-        ))}
+        <Link
+          href="/"
+          className={clsx(
+            'flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200',
+            pathname === '/'
+              ? 'text-accent-lime bg-accent-lime/10'
+              : 'text-text-tertiary hover:text-text-primary hover:bg-bg-elevated'
+          )}
+        >
+          <BarChart3 className="w-5 h-5" />
+          <span className="text-xs font-medium">Dashboard</span>
+        </Link>
+
+        <Link
+          href="/trade"
+          className={clsx(
+            'flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200',
+            pathname === '/trade'
+              ? 'text-accent-lime bg-accent-lime/10'
+              : 'text-text-tertiary hover:text-text-primary hover:bg-bg-elevated'
+          )}
+        >
+          <TrendingUp className="w-5 h-5" />
+          <span className="text-xs font-medium">Trade</span>
+        </Link>
+
+        <Link
+          href="/market"
+          className={clsx(
+            'flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200',
+            pathname === '/market'
+              ? 'text-accent-lime bg-accent-lime/10'
+              : 'text-text-tertiary hover:text-text-primary hover:bg-bg-elevated'
+          )}
+        >
+          <Wallet className="w-5 h-5" />
+          <span className="text-xs font-medium">Market</span>
+        </Link>
+
+        <button
+          className="flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200 text-text-tertiary hover:text-text-primary hover:bg-bg-elevated"
+        >
+          <Settings className="w-5 h-5" />
+          <span className="text-xs font-medium">Settings</span>
+        </button>
       </div>
     </nav>
   );
