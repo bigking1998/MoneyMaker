@@ -333,6 +333,9 @@ const Dashboard = () => {
       }
     };
 
+    initializeDyDx();
+  }, []);
+
   const handleOpenDyDx = async () => {
     if (dydxService.isConnected) {
       await dydxService.openDyDxWithWallet();
