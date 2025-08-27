@@ -344,6 +344,17 @@ const Dashboard = () => {
 
   const handleConnectWallet = async () => {
     try {
+      // Try DyDx integration first
+      const dydxResult = await dydxService.connectWallet();
+      
+      if (dydxResult.success) {
+        setWalletConnected(true);
+        setWalletAddress(dydxResult.address);
+        console.log('Connected to DyDx wallet:', dydxResult.address);
+        return;
+      }
+      
+      // Fallback to standard Web3 wallet connection
       if (window.ethereum) {
         const accounts = await window.ethereum.request({
           method: 'eth_requestAccounts'
@@ -352,15 +363,14 @@ const Dashboard = () => {
         if (accounts.length > 0) {
           setWalletConnected(true);
           setWalletAddress(accounts[0]);
-          
-          // Here you would integrate with DyDx
-          console.log('Connected to wallet:', accounts[0]);
+          console.log('Connected to Web3 wallet:', accounts[0]);
         }
       } else {
-        alert('Please install MetaMask or another Web3 wallet');
+        alert('Please install MetaMask, Keplr, or another compatible wallet');
       }
     } catch (error) {
       console.error('Error connecting wallet:', error);
+      alert('Error connecting wallet: ' + error.message);
     }
   };
 
