@@ -13,8 +13,8 @@ interface Exchange {
   volume: number;
 }
 
-// MEXC API for real price data
-const MEXC_API_BASE = 'https://api.mexc.com/api/v3';
+// MEXC API through our Next.js API routes  
+const MEXC_API_BASE = '/api/mexc';
 
 export const ExchangeTable: React.FC = () => {
   const [exchanges, setExchanges] = useState<Exchange[]>([
