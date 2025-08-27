@@ -23,3 +23,13 @@ numpy>=1.26.0
 python-multipart>=0.0.9
 jq>=1.6.0
 typer>=0.9.0
+
+# Crypto Trading Dependencies
+websockets>=12.0
+ccxt>=4.4.0
+python-binance>=1.0.20
+aiohttp>=3.9.0
+asyncio-throttle>=1.0.2
+ta>=0.10.2
+yfinance>=0.2.40
+websocket-client>=1.8.0
