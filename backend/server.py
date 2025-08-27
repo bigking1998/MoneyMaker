@@ -140,15 +140,25 @@ async def fetch_crypto_data():
                     data = await response.json()
                     
                     for coin in data:
+                        # Handle None/False values from API
+                        current_price = coin.get('current_price') or 0
+                        price_change_24h = coin.get('price_change_percentage_24h') or 0
+                        total_volume = coin.get('total_volume') or 0
+                        market_cap = coin.get('market_cap') or 0
+                        
+                        # Skip coins with invalid data
+                        if current_price <= 0 or not coin.get('symbol'):
+                            continue
+                            
                         symbol = coin['symbol'].upper() + '/USD'
                         crypto_pair = CryptoPair(
                             symbol=symbol,
                             base_currency=coin['symbol'].upper(),
                             quote_currency='USD',
-                            price=coin['current_price'] or 0,
-                            price_24h_change=coin['price_change_percentage_24h'] or 0,
-                            volume_24h=coin['total_volume'] or 0,
-                            market_cap=coin['market_cap']
+                            price=float(current_price),
+                            price_24h_change=float(price_change_24h),
+                            volume_24h=float(total_volume),
+                            market_cap=float(market_cap) if market_cap else None
                         )
                         crypto_data_cache[symbol] = crypto_pair.dict()
                         
