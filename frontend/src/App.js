@@ -425,7 +425,7 @@ const Dashboard = () => {
     try {
       setIsLoading(true);
       
-      // Try DyDx integration first
+      // Connect through real DyDx integration
       const dydxResult = await dydxService.connectWallet();
       
       if (dydxResult.success) {
@@ -437,16 +437,20 @@ const Dashboard = () => {
           alert(dydxResult.warning);
         }
         
-        console.log('Connected to wallet:', {
+        if (dydxResult.message) {
+          alert(`✅ ${dydxResult.message}`);
+        }
+        
+        console.log('Connected to DyDx wallet:', {
           address: dydxResult.address,
           type: dydxResult.type
         });
         
-        // Get DyDx account info if available
+        // Get real DyDx account info if available
         if (dydxService.isReadyForTrading()) {
           try {
-            const accountInfo = await dydxService.getSubaccountInfo();
-            console.log('DyDx account info:', accountInfo);
+            const accountInfo = await dydxService.getDyDxAccountInfo();
+            console.log('Real DyDx account info:', accountInfo);
           } catch (error) {
             console.log('Could not fetch DyDx account info:', error.message);
           }
@@ -455,8 +459,14 @@ const Dashboard = () => {
         return;
       }
       
-      // If DyDx connection failed, show error
-      alert(`Wallet connection failed: ${dydxResult.error}\n\nPlease install Keplr wallet for full DyDx functionality.`);
+      // If DyDx connection failed, show error with helpful instructions
+      const errorMessage = `Connection failed: ${dydxResult.error}\n\n` +
+                          'To connect:\n' +
+                          '1. Make sure you have a wallet installed\n' +
+                          '2. Connect to DyDx platform first\n' +
+                          '3. Return here to sync your connection';
+      
+      alert(errorMessage);
       
     } catch (error) {
       console.error('Error connecting wallet:', error);
