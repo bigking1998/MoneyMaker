@@ -176,8 +176,91 @@ class DyDxService {
   }
 
   async checkPhantomWallet() {
-    return typeof window !== 'undefined' && 
-           (window.phantom?.ethereum || window.phantom?.solana);
+    if (window.phantom?.ethereum) {
+      try {
+        const accounts = await window.phantom.ethereum.request({ method: 'eth_accounts' });
+        if (accounts && accounts.length > 0) {
+          this.wallet = {
+            address: accounts[0],
+            provider: window.phantom.ethereum,
+            type: 'phantom_dydx'
+          };
+          this.isConnected = true;
+          return {
+            success: true,
+            address: accounts[0],
+            type: 'phantom_dydx',
+            message: 'Synced with Phantom wallet from DyDx'
+          };
+        }
+      } catch (error) {
+        console.log('Phantom wallet check failed:', error);
+      }
+    }
+    throw new Error('No Phantom wallet found');
+  }
+
+  async checkLocalStorage() {
+    // Check if DyDx has stored wallet info in localStorage
+    try {
+      const dydxWallet = localStorage.getItem('dydx-wallet') || 
+                        localStorage.getItem('wallet-connect') ||
+                        localStorage.getItem('phantom-wallet');
+      
+      if (dydxWallet) {
+        const walletData = JSON.parse(dydxWallet);
+        if (walletData.address) {
+          this.wallet = {
+            address: walletData.address,
+            type: 'dydx_stored',
+            data: walletData
+          };
+          this.isConnected = true;
+          return {
+            success: true,
+            address: walletData.address,
+            type: 'dydx_stored',
+            message: 'Synced with stored DyDx wallet'
+          };
+        }
+      }
+    } catch (error) {
+      console.log('LocalStorage check failed:', error);
+    }
+    throw new Error('No stored wallet found');
+  }
+
+  async manualWalletSync() {
+    const walletAddress = window.prompt(
+      'Manual Wallet Sync\n\n' +
+      'Please enter your wallet address that is connected to DyDx:\n' +
+      '(You can find this in your DyDx account or wallet)'
+    );
+    
+    if (walletAddress && walletAddress.trim()) {
+      const address = walletAddress.trim();
+      
+      // Basic address validation
+      if (address.length >= 40 && (address.startsWith('0x') || address.length === 42)) {
+        this.wallet = {
+          address: address,
+          type: 'manual_sync',
+          synced: true
+        };
+        this.isConnected = true;
+        
+        return {
+          success: true,
+          address: address,
+          type: 'manual_sync',
+          message: 'Manually synced with DyDx wallet'
+        };
+      } else {
+        throw new Error('Invalid wallet address format');
+      }
+    }
+    
+    throw new Error('Manual sync cancelled');
   }
 
   async connectPhantomWallet() {
