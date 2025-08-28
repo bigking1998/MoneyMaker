@@ -338,22 +338,6 @@ class DyDxService {
     }
   }
 
-  async disconnect() {
-    try {
-      if (this.wallet?.type === 'phantom_solana' && window.phantom?.solana) {
-        await window.phantom.solana.disconnect();
-      }
-      
-      this.wallet = null;
-      this.isConnected = false;
-      this.dydxAccount = null;
-      
-      console.log('Disconnected from DyDx and Phantom wallet');
-    } catch (error) {
-      console.error('Error disconnecting:', error);
-    }
-  }
-
   // Utility methods
   getWalletInfo() {
     return {
@@ -367,24 +351,24 @@ class DyDxService {
   isReadyForTrading() {
     return this.isConnected && 
            this.wallet && 
-           (this.wallet.type === 'phantom_ethereum' || this.wallet.type === 'phantom_solana');
+           this.wallet.type === 'phantom_solana';
   }
 
   getConnectionInstructions() {
     return {
       primary: {
         name: 'DyDx + Phantom Wallet',
-        description: 'Connect through DyDx platform using Phantom wallet',
+        description: 'Connect Phantom Solana wallet, then use DyDx platform for trading',
         steps: [
-          'Install Phantom wallet',
-          'Connect through DyDx platform',
-          'Authorize wallet connection',
-          'Start trading'
+          'Install Phantom wallet (phantom.app)',
+          'Create or import a Solana wallet',
+          'Connect Phantom wallet to this app',
+          'Open DyDx platform for trading'
         ]
       },
       phantom: {
         name: 'Phantom Wallet',
-        description: 'Multi-chain wallet supporting Ethereum and Solana',
+        description: 'Multi-chain wallet supporting Solana (preferred for dYdX)',
         url: 'https://phantom.app/',
         supported: true
       }
@@ -399,7 +383,7 @@ class DyDxService {
 
   async openDyDxWithWallet() {
     if (this.isConnected) {
-      const dydxUrl = `https://dydx.trade/trade/BTC-USD?wallet=${this.wallet.address}`;
+      const dydxUrl = `https://dydx.trade/trade/BTC-USD`;
       window.open(dydxUrl, '_blank');
     } else {
       await this.redirectToDyDx();
