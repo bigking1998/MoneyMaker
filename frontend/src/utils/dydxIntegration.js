@@ -28,7 +28,7 @@ class DyDxService {
         return await this.getDyDxWalletInfo();
       }
       
-      // Open DyDx platform for connection
+      // Open DyDx platform for connection - CORRECT URL
       const dydxUrl = 'https://dydx.trade/trade/BTC-USD';
       
       const connectToDyDx = window.confirm(
