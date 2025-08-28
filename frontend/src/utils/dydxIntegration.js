@@ -269,9 +269,34 @@ class DyDxService {
         throw new Error('Phantom wallet not found. Please install Phantom wallet.');
       }
 
-      // Check if Phantom has Ethereum support
-      if (window.phantom.ethereum) {
-        console.log('Connecting to Phantom Ethereum...');
+      // Prioritize Solana connection for Phantom
+      if (window.phantom.solana) {
+        console.log('Connecting to Phantom Solana...');
+        
+        const response = await window.phantom.solana.connect();
+        
+        if (response.publicKey) {
+          this.wallet = {
+            address: response.publicKey.toString(),
+            provider: window.phantom.solana,
+            type: 'phantom_solana'
+          };
+          this.isConnected = true;
+
+          // Setup DyDx account for Solana
+          await this.setupDyDxAccount(response.publicKey.toString());
+
+          return {
+            success: true,
+            address: response.publicKey.toString(),
+            type: 'phantom_solana',
+            message: 'Successfully connected to DyDx via Phantom Solana Wallet'
+          };
+        }
+      }
+      // Fallback to Ethereum if Solana not available
+      else if (window.phantom.ethereum) {
+        console.log('Connecting to Phantom Ethereum (fallback)...');
         
         const accounts = await window.phantom.ethereum.request({
           method: 'eth_requestAccounts'
@@ -285,36 +310,13 @@ class DyDxService {
           };
           this.isConnected = true;
 
-          // Simulate DyDx account setup
           await this.setupDyDxAccount(accounts[0]);
 
           return {
             success: true,
             address: accounts[0],
             type: 'phantom_ethereum',
-            message: 'Successfully connected to DyDx via Phantom Wallet'
-          };
-        }
-      }
-      // Fallback to Solana if Ethereum not available
-      else if (window.phantom.solana) {
-        console.log('Connecting to Phantom Solana...');
-        
-        const response = await window.phantom.solana.connect();
-        
-        if (response.publicKey) {
-          this.wallet = {
-            address: response.publicKey.toString(),
-            provider: window.phantom.solana,
-            type: 'phantom_solana'
-          };
-          this.isConnected = true;
-
-          return {
-            success: true,
-            address: response.publicKey.toString(),
-            type: 'phantom_solana',
-            warning: 'Connected via Solana - for DyDx trading, Ethereum connection is preferred'
+            warning: 'Connected via Ethereum - Solana preferred for best experience'
           };
         }
       }
