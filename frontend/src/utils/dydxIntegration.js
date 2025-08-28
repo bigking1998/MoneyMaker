@@ -321,72 +321,13 @@ class DyDxService {
     throw new Error('Manual sync cancelled');
   }
 
-  async connectPhantomWallet() {
+  async connectWallet() {
     try {
-      if (!window.phantom) {
-        throw new Error('Phantom wallet not found. Please install Phantom wallet.');
-      }
-
-      // Prioritize Solana connection for Phantom
-      if (window.phantom.solana) {
-        console.log('Connecting to Phantom Solana...');
-        
-        const response = await window.phantom.solana.connect();
-        
-        if (response.publicKey) {
-          this.wallet = {
-            address: response.publicKey.toString(),
-            provider: window.phantom.solana,
-            type: 'phantom_solana'
-          };
-          this.isConnected = true;
-
-          // Setup DyDx account for Solana
-          await this.setupDyDxAccount(response.publicKey.toString());
-
-          return {
-            success: true,
-            address: response.publicKey.toString(),
-            type: 'phantom_solana',
-            message: 'Successfully connected to DyDx via Phantom Solana Wallet'
-          };
-        }
-      }
-      // Fallback to Ethereum if Solana not available
-      else if (window.phantom.ethereum) {
-        console.log('Connecting to Phantom Ethereum (fallback)...');
-        
-        const accounts = await window.phantom.ethereum.request({
-          method: 'eth_requestAccounts'
-        });
-
-        if (accounts && accounts.length > 0) {
-          this.wallet = {
-            address: accounts[0],
-            provider: window.phantom.ethereum,
-            type: 'phantom_ethereum'
-          };
-          this.isConnected = true;
-
-          await this.setupDyDxAccount(accounts[0]);
-
-          return {
-            success: true,
-            address: accounts[0],
-            type: 'phantom_ethereum',
-            warning: 'Connected via Ethereum - Solana preferred for best experience'
-          };
-        }
-      }
-
-      throw new Error('Failed to connect to Phantom wallet');
-
+      // Primary method: Connect Phantom wallet first, then guide to DyDx
+      return await this.connectThroughDyDx();
     } catch (error) {
-      console.error('Phantom wallet connection error:', error);
-      return {
-        success: false,
-        error: `Phantom connection failed: ${error.message}`
-      };
+      console.error('Error in wallet connection flow:', error);
+      return { success: false, error: error.message };
     }
   }
 
@@ -416,13 +357,21 @@ class DyDxService {
     }
   }
 
-  async connectWallet() {
+  async disconnect() {
     try {
-      // Primary method: Connect through DyDx platform
-      return await this.connectThroughDyDx();
+      if (this.provider && this.provider.isConnected) {
+        await this.provider.disconnect();
+        console.log('Disconnected from Phantom wallet');
+      }
+      
+      this.wallet = null;
+      this.isConnected = false;
+      this.dydxAccount = null;
+      this.provider = null;
+      
+      console.log('Disconnected from DyDx and Phantom wallet');
     } catch (error) {
-      console.error('Error in wallet connection flow:', error);
-      return { success: false, error: error.message };
+      console.error('Error disconnecting:', error);
     }
   }
 
