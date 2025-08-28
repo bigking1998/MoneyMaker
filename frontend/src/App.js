@@ -298,7 +298,7 @@ const TradingPanel = ({ walletConnected, onConnectWallet }) => {
           </div>
           <button
             className="btn-secondary w-full text-xs mt-2"
-            onClick={() => window.open('https://trade.dydx.exchange/', '_blank')}
+            onClick={() => window.open('https://dydx.trade/trade/BTC-USD', '_blank')}
           >
             Open DyDx Platform →
           </button>
