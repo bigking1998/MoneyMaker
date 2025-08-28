@@ -139,8 +139,8 @@ const TradingChart = ({ symbol = 'ETH/USD', timeframe = '1h' }) => {
       y: {
         position: 'right',
         grid: {
-          color: 'var(--color-chart-grid)',
-          borderColor: 'var(--color-border)',
+          color: 'rgba(255, 255, 255, 0.1)',
+          borderColor: 'rgba(255, 255, 255, 0.2)',
         },
         ticks: {
           color: 'var(--color-chart-axis)',
