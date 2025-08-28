@@ -92,7 +92,7 @@ const Header = ({ walletConnected, onConnectWallet, walletAddress, walletType, o
 };
 
 // Price Display Component
-const PriceDisplay = ({ symbol = "ETH/USD", price = 3615.86, change = 3.27, subPrice = 3630.00 }) => {
+const PriceDisplay = ({ symbol = "BTC/USD", price = 111191, change = -0.48, subPrice = 111129 }) => {
   const isPositive = change > 0;
   
   return (
@@ -100,8 +100,8 @@ const PriceDisplay = ({ symbol = "ETH/USD", price = 3615.86, change = 3.27, subP
       {/* Trading Pair */}
       <div className="flex items-center gap-3 mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--color-semantic-info)] to-[#1d4ed8] flex items-center justify-center">
-            <span className="text-white font-bold">Ξ</span>
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#f7931a] to-[#d4761a] flex items-center justify-center">
+            <span className="text-white font-bold text-lg">₿</span>
           </div>
           <span className="text-2xl font-semibold text-[var(--color-text-primary)]">$</span>
         </div>
