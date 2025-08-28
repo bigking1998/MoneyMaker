@@ -512,12 +512,14 @@ const Dashboard = () => {
         {/* Main Content */}
         <div className="lg:col-span-3">
           <PriceDisplay 
-            price={currentPrice?.price || 3615.86}
-            change={currentPrice?.price_24h_change || 3.27}
+            symbol="BTC/USD"
+            price={currentPrice?.price || 111191}
+            change={currentPrice?.price_24h_change || -0.48}
           />
           <Chart 
             timeframe={selectedTimeframe}
             onTimeframeChange={setSelectedTimeframe}
+            symbol="BTC/USD"
           />
           <ExchangeList exchanges={exchangeData} />
         </div>
