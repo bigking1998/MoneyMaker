@@ -78,7 +78,7 @@ const Header = ({ walletConnected, onConnectWallet, walletAddress, walletType, o
             </div>
             <button
               className="btn-secondary text-xs px-3 py-1"
-              onClick={onOpenDyDx}
+              onClick={() => window.open('https://dydx.trade/trade/BTC-USD', '_blank')}
               title="Open DyDx Trading Platform"
             >
               Trade on DyDx
