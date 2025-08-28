@@ -51,16 +51,16 @@ const TradingChart = ({ symbol = 'ETH/USD', timeframe = '1h' }) => {
 
       const step = timeStep[timeframe] || timeStep['24h'];
       const data = [];
-      let basePrice = 3600 + Math.random() * 100;
+      let basePrice = 111000 + Math.random() * 1000; // BTC price range around 111k
 
       for (let i = interval; i >= 0; i--) {
         const timestamp = now - (i * step);
-        const change = (Math.random() - 0.5) * 50;
+        const change = (Math.random() - 0.5) * 500; // Larger changes for BTC
         basePrice += change;
         
         data.push({
           x: new Date(timestamp),
-          y: Math.max(basePrice, 3000) // Ensure price doesn't go below 3000
+          y: Math.max(basePrice, 110000) // Ensure price doesn't go below 110k
         });
       }
 
