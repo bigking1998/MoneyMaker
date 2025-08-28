@@ -26,7 +26,8 @@ const Header = ({ walletConnected, onConnectWallet, walletAddress, walletType, o
     if (!walletConnected) return null;
     
     const typeDisplay = {
-      'phantom_dydx': '👻 Phantom (DyDx)',
+      'phantom_solana': '👻 Phantom (SOL)',
+      'phantom_ethereum': '👻 Phantom (ETH)',
       'ethereum_dydx': '🌐 Ethereum (DyDx)',
       'dydx_connected': '🔄 DyDx Connected',
       'dydx_stored': '💾 DyDx Synced',
