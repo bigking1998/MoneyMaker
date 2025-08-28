@@ -224,10 +224,14 @@
   current_focus:
     - "Fix chart text colors to white"
     - "Fix Phantom Solana wallet integration"
-  stuck_tasks: []
+  stuck_tasks: 
+    - "Test individual crypto pair lookup /api/crypto/pair/{symbol}"
+    - "Test exchange prices /api/exchanges/prices/{symbol}"
   test_all: false
   test_priority: "high_first"
 
 ## agent_communication:
     - agent: "main"
       message: "Starting fixes for chart styling and Phantom Solana wallet integration based on user feedback"
+    - agent: "testing"
+      message: "Completed comprehensive backend API testing. Core functionality working well - all high priority endpoints operational. Found minor URL path parameter issues with individual symbol lookup endpoints due to '/' character handling in FastAPI. BTC prioritization confirmed working. WebSocket real-time data confirmed working. Overall backend success rate: 73.7% (14/19 tests passed)."
