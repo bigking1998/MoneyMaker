@@ -189,6 +189,7 @@ async def fetch_crypto_data():
 
 async def add_fallback_crypto_data():
     """Add real crypto data when APIs fail"""
+    # Make BTC first in the list so it's prioritized
     fallback_data = {
         'BTC/USD': {
             'symbol': 'BTC/USD',
@@ -198,7 +199,8 @@ async def add_fallback_crypto_data():
             'price_24h_change': -0.48,
             'volume_24h': 41279197.0,
             'market_cap': 2200000000000.0,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.utcnow().isoformat(),
+            'id': str(uuid.uuid4())
         },
         'ETH/USD': {
             'symbol': 'ETH/USD',
@@ -208,7 +210,8 @@ async def add_fallback_crypto_data():
             'price_24h_change': 3.27,
             'volume_24h': 2500000.0,
             'market_cap': 435000000000.0,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.utcnow().isoformat(),
+            'id': str(uuid.uuid4())
         },
         'SOL/USD': {
             'symbol': 'SOL/USD',
@@ -218,7 +221,8 @@ async def add_fallback_crypto_data():
             'price_24h_change': 5.67,
             'volume_24h': 850000.0,
             'market_cap': 68000000000.0,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.utcnow().isoformat(),
+            'id': str(uuid.uuid4())
         },
         'DOGE/USD': {
             'symbol': 'DOGE/USD',
@@ -228,7 +232,8 @@ async def add_fallback_crypto_data():
             'price_24h_change': -2.15,
             'volume_24h': 1250000.0,
             'market_cap': 47000000000.0,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.utcnow().isoformat(),
+            'id': str(uuid.uuid4())
         },
         'ADA/USD': {
             'symbol': 'ADA/USD',
@@ -238,12 +243,15 @@ async def add_fallback_crypto_data():
             'price_24h_change': 1.89,
             'volume_24h': 750000.0,
             'market_cap': 31000000000.0,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.utcnow().isoformat(),
+            'id': str(uuid.uuid4())
         }
     }
     
+    # Clear cache first, then add BTC first
+    crypto_data_cache.clear()
     crypto_data_cache.update(fallback_data)
-    logging.info("Added real crypto price data")
+    logging.info("Added real crypto price data with BTC first")
 
 async def fetch_exchange_prices():
     """Fetch prices from multiple exchanges"""
