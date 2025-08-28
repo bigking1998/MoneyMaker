@@ -1,10 +1,12 @@
 // DyDx Integration Utilities - Phantom Wallet Integration
+import { PublicKey } from '@solana/web3.js';
 
 class DyDxService {
   constructor() {
     this.wallet = null;
     this.isConnected = false;
     this.dydxClient = null;
+    this.provider = null;
   }
 
   async initializeClient() {
@@ -17,58 +19,114 @@ class DyDxService {
     }
   }
 
+  async connectPhantomWallet() {
+    try {
+      // Check if Phantom is installed
+      if (!window.phantom || !window.phantom.solana) {
+        throw new Error('Phantom wallet not found. Please install Phantom wallet from https://phantom.app/');
+      }
+
+      const provider = window.phantom.solana;
+      
+      // Check if already connected
+      if (provider.isConnected) {
+        console.log('Phantom already connected, getting account...');
+        this.wallet = {
+          address: provider.publicKey.toString(),
+          provider: provider,
+          type: 'phantom_solana'
+        };
+        this.isConnected = true;
+        this.provider = provider;
+        
+        return {
+          success: true,
+          address: provider.publicKey.toString(),
+          type: 'phantom_solana',
+          message: 'Successfully connected to Phantom Solana Wallet'
+        };
+      }
+
+      // Connect to Phantom
+      console.log('Connecting to Phantom Solana wallet...');
+      const response = await provider.connect();
+      
+      if (response.publicKey) {
+        this.wallet = {
+          address: response.publicKey.toString(),
+          provider: provider,
+          type: 'phantom_solana'
+        };
+        this.isConnected = true;
+        this.provider = provider;
+
+        // Setup DyDx account for Solana
+        await this.setupDyDxAccount(response.publicKey.toString());
+
+        console.log('Successfully connected to Phantom:', response.publicKey.toString());
+
+        return {
+          success: true,
+          address: response.publicKey.toString(),
+          type: 'phantom_solana',
+          message: 'Successfully connected to DyDx via Phantom Solana Wallet'
+        };
+      }
+
+      throw new Error('Failed to get public key from Phantom wallet');
+
+    } catch (error) {
+      console.error('Phantom wallet connection error:', error);
+      return {
+        success: false,
+        error: `Phantom connection failed: ${error.message}`
+      };
+    }
+  }
+
   async connectThroughDyDx() {
     try {
-      // Direct integration with DyDx platform
-      console.log('Connecting through DyDx platform...');
+      // First try to connect Phantom wallet
+      console.log('Attempting to connect Phantom wallet for DyDx...');
       
-      // Check if we're already on DyDx or can access it
-      if (window.location.hostname.includes('dydx')) {
-        // We're on DyDx platform, try to get wallet info
-        return await this.getDyDxWalletInfo();
-      }
+      const phantomResult = await this.connectPhantomWallet();
       
-      // Open DyDx platform for connection - CORRECT URL
-      const dydxUrl = 'https://dydx.trade/trade/BTC-USD';
-      
-      const connectToDyDx = window.confirm(
-        'Connect to DyDx Platform?\n\n' +
-        'This will open the DyDx trading platform where you can connect your wallet.\n\n' +
-        'After connecting on DyDx, return here to sync your connection.\n\n' +
-        'Click OK to open DyDx platform.'
-      );
+      if (phantomResult.success) {
+        // Success with Phantom, now guide user to DyDx
+        const openDyDx = window.confirm(
+          `✅ Phantom Wallet Connected!\n\n` +
+          `Address: ${phantomResult.address.slice(0, 8)}...${phantomResult.address.slice(-4)}\n\n` +
+          `Now let's connect to DyDx trading platform.\n\n` +
+          `Click OK to open DyDx where you can:\n` +
+          `• Connect your wallet to DyDx\n` +
+          `• Start trading BTC/USD\n` +
+          `• Access all DyDx features`
+        );
 
-      if (connectToDyDx) {
-        // Open DyDx in new tab
-        const dydxWindow = window.open(dydxUrl, '_blank');
-        
-        if (dydxWindow) {
-          // Show instructions for connecting
-          setTimeout(() => {
-            const checkConnection = window.confirm(
-              'DyDx Platform Opened!\n\n' +
-              'Steps to connect:\n' +
-              '1. Connect your wallet on DyDx\n' +
-              '2. Confirm your connection\n' +
-              '3. Return to this tab\n' +
-              '4. Click OK when ready to sync\n\n' +
-              'Have you connected your wallet on DyDx?'
-            );
-            
-            if (checkConnection) {
-              return this.syncWithDyDx();
-            }
-          }, 3000);
-          
-          return {
-            success: true,
-            message: 'DyDx platform opened - please connect your wallet there',
-            requiresSync: true
-          };
+        if (openDyDx) {
+          // Open DyDx platform
+          const dydxUrl = 'https://dydx.trade/trade/BTC-USD';
+          window.open(dydxUrl, '_blank');
         }
-      }
 
-      throw new Error('Connection to DyDx cancelled by user');
+        return phantomResult;
+      } else {
+        // Failed to connect Phantom, show error with instructions
+        const installPhantom = window.confirm(
+          `❌ ${phantomResult.error}\n\n` +
+          `To use DyDx, you need Phantom wallet:\n\n` +
+          `1. Install Phantom from phantom.app\n` +
+          `2. Create a Solana wallet\n` +
+          `3. Return here to connect\n\n` +
+          `Click OK to open Phantom website`
+        );
+
+        if (installPhantom) {
+          window.open('https://phantom.app/', '_blank');
+        }
+
+        return phantomResult;
+      }
       
     } catch (error) {
       console.error('Error connecting through DyDx:', error);
