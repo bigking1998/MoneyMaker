@@ -104,6 +104,91 @@
 
 ## user_problem_statement: "User reported chart styling issues (white text/numbers needed, black box should be white) and wallet connection failing (need Phantom Solana wallet for dYdX instead of current implementation)"
 
+## backend:
+  - task: "Test /api/ status endpoint"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Root endpoint working correctly, returns proper status and message 'LumaTrade API v1.0'"
+
+  - task: "Test /api/crypto/pairs endpoint with BTC prioritization"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Crypto pairs endpoint working correctly, returns 5 pairs with BTC/USD prioritized first as expected"
+
+  - task: "Test /api/exchanges/aggregated endpoint"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Aggregated exchanges endpoint working correctly, returns proper exchange data with required fields"
+
+  - task: "Test WebSocket /api/ws for real-time data"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "WebSocket endpoint working correctly, accepts connections and returns real-time crypto and exchange data"
+
+  - task: "Test individual crypto pair lookup /api/crypto/pair/{symbol}"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 1
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "Individual crypto pair endpoint returns 404 errors due to FastAPI path parameter issue with '/' character in symbols like 'BTC/USD'. Core functionality works but URL design needs fixing."
+
+  - task: "Test exchange prices /api/exchanges/prices/{symbol}"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 1
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "Exchange prices endpoint has same URL path parameter issue with '/' character. Aggregated endpoint works fine as alternative."
+
+  - task: "Verify BTC data prioritization and JSON format"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "BTC data is correctly prioritized as first item in crypto/pairs response. All API responses are properly formatted JSON."
+
 ## frontend:
   - task: "Fix chart text colors to white"
     implemented: false
