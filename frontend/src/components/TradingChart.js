@@ -74,14 +74,14 @@ const TradingChart = ({ symbol = 'ETH/USD', timeframe = '1h' }) => {
         {
           label: symbol,
           data: data,
-          borderColor: 'var(--color-accent-lime)',
-          backgroundColor: 'rgba(196, 216, 45, 0.1)',
+          borderColor: '#ffffff',
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
           borderWidth: 2,
           fill: true,
           tension: 0.1,
           pointRadius: 0,
           pointHoverRadius: 6,
-          pointHoverBackgroundColor: 'var(--color-accent-lime)',
+          pointHoverBackgroundColor: '#ffffff',
           pointHoverBorderColor: 'var(--color-primary-bg)',
           pointHoverBorderWidth: 2,
         }
