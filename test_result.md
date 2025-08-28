@@ -191,20 +191,23 @@
 
 ## frontend:
   - task: "Fix chart text colors to white"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "TradingChart.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "user"
           comment: "User reports chart times and numbers are not white, black box on chart should be white"
+        - working: true
+          agent: "main"
+          comment: "Fixed chart axis colors to white (#ffffff), grid colors to white with transparency, tooltip colors to white. Chart line and background are now white as requested."
         
   - task: "Fix Phantom Solana wallet integration"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "dydxIntegration.js"
     stuck_count: 0
     priority: "high"
@@ -213,6 +216,9 @@
         - working: false
           agent: "user"
           comment: "Current wallet connection is failing, needs proper Phantom Solana integration for dYdX"
+        - working: true
+          agent: "main"
+          comment: "Implemented proper Phantom Solana wallet integration with @solana/wallet-adapter-phantom and @solana/web3.js. Updated connectThroughDyDx to prioritize Phantom Solana connection. Added proper error handling and user guidance."
 
 ## metadata:
   created_by: "main_agent"
