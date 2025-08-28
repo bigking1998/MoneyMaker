@@ -478,8 +478,8 @@ const Dashboard = () => {
 
   // Update main price when crypto data changes
   const currentPrice = cryptoData.find(crypto => 
-    crypto.symbol === 'ETH/USD' || crypto.base_currency === 'ETH'
-  ) || { price: 3615.86, price_24h_change: 3.27 };
+    crypto.symbol === 'BTC/USD' || crypto.base_currency === 'BTC'
+  ) || { price: 111191, price_24h_change: -0.48 };
 
   if (isLoading) {
     return (
