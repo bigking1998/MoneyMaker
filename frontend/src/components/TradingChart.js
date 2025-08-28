@@ -97,10 +97,10 @@ const TradingChart = ({ symbol = 'ETH/USD', timeframe = '1h' }) => {
         display: false
       },
       tooltip: {
-        backgroundColor: 'var(--color-surface)',
-        titleColor: 'var(--color-text-primary)',
-        bodyColor: 'var(--color-text-secondary)',
-        borderColor: 'var(--color-border)',
+        backgroundColor: 'rgba(42, 42, 42, 0.95)',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        borderColor: 'rgba(255, 255, 255, 0.2)',
         borderWidth: 1,
         cornerRadius: 8,
         displayColors: false,
