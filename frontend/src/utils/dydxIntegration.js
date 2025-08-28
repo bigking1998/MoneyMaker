@@ -19,38 +19,53 @@ class DyDxService {
 
   async connectThroughDyDx() {
     try {
-      // Method 1: Connect through DyDx official interface
+      // Direct integration with DyDx platform
       console.log('Connecting through DyDx platform...');
       
-      // Open DyDx connection modal
+      // Check if we're already on DyDx or can access it
+      if (window.location.hostname.includes('dydx')) {
+        // We're on DyDx platform, try to get wallet info
+        return await this.getDyDxWalletInfo();
+      }
+      
+      // Open DyDx platform for connection
+      const dydxUrl = 'https://dydx.trade/trade/BTC-USD';
+      
       const connectToDyDx = window.confirm(
         'Connect to DyDx Platform?\n\n' +
-        'This will redirect you to dYdX to establish the connection with your Phantom wallet.\n\n' +
-        'Click OK to proceed to dYdX platform.'
+        'This will open the DyDx trading platform where you can connect your wallet.\n\n' +
+        'After connecting on DyDx, return here to sync your connection.\n\n' +
+        'Click OK to open DyDx platform.'
       );
 
       if (connectToDyDx) {
-        // For demo purposes, we'll simulate the DyDx connection flow
-        // In a real implementation, this would integrate with DyDx's official SDK
+        // Open DyDx in new tab
+        const dydxWindow = window.open(dydxUrl, '_blank');
         
-        const hasPhantom = await this.checkPhantomWallet();
-        if (!hasPhantom) {
-          const installPhantom = window.confirm(
-            'Phantom Wallet not found!\n\n' +
-            'DyDx works best with Phantom wallet for Ethereum transactions.\n\n' +
-            'Would you like to install Phantom wallet?'
-          );
+        if (dydxWindow) {
+          // Show instructions for connecting
+          setTimeout(() => {
+            const checkConnection = window.confirm(
+              'DyDx Platform Opened!\n\n' +
+              'Steps to connect:\n' +
+              '1. Connect your wallet on DyDx\n' +
+              '2. Confirm your connection\n' +
+              '3. Return to this tab\n' +
+              '4. Click OK when ready to sync\n\n' +
+              'Have you connected your wallet on DyDx?'
+            );
+            
+            if (checkConnection) {
+              return this.syncWithDyDx();
+            }
+          }, 3000);
           
-          if (installPhantom) {
-            window.open('https://phantom.app/', '_blank');
-            return {
-              success: false,
-              error: 'Please install Phantom wallet and try again'
-            };
-          }
+          return {
+            success: true,
+            message: 'DyDx platform opened - please connect your wallet there',
+            requiresSync: true
+          };
         }
-
-        return await this.connectPhantomWallet();
       }
 
       throw new Error('Connection to DyDx cancelled by user');
@@ -59,6 +74,105 @@ class DyDxService {
       console.error('Error connecting through DyDx:', error);
       return { success: false, error: error.message };
     }
+  }
+
+  async getDyDxWalletInfo() {
+    try {
+      // Try to get wallet info from DyDx platform
+      if (window.ethereum) {
+        const accounts = await window.ethereum.request({
+          method: 'eth_accounts'
+        });
+        
+        if (accounts && accounts.length > 0) {
+          this.wallet = {
+            address: accounts[0],
+            provider: window.ethereum,
+            type: 'dydx_connected'
+          };
+          this.isConnected = true;
+          
+          return {
+            success: true,
+            address: accounts[0],
+            type: 'dydx_connected',
+            message: 'Connected to DyDx wallet'
+          };
+        }
+      }
+      
+      throw new Error('No wallet found on DyDx');
+    } catch (error) {
+      console.error('Error getting DyDx wallet info:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async syncWithDyDx() {
+    try {
+      // Attempt to sync with DyDx platform
+      console.log('Syncing with DyDx platform...');
+      
+      // Try multiple methods to detect DyDx connection
+      const syncMethods = [
+        this.checkEthereumWallet.bind(this),
+        this.checkPhantomWallet.bind(this),
+        this.checkLocalStorage.bind(this)
+      ];
+      
+      for (const method of syncMethods) {
+        try {
+          const result = await method();
+          if (result.success) {
+            return result;
+          }
+        } catch (error) {
+          console.log('Sync method failed:', error.message);
+          continue;
+        }
+      }
+      
+      // If no automatic sync, prompt user
+      const manualSync = window.confirm(
+        'Automatic sync failed.\n\n' +
+        'If you have connected your wallet on DyDx:\n' +
+        '• Make sure you are logged in to DyDx\n' +
+        '• Try refreshing both tabs\n' +
+        '• Ensure your wallet is unlocked\n\n' +
+        'Try manual sync?'
+      );
+      
+      if (manualSync) {
+        return await this.manualWalletSync();
+      }
+      
+      throw new Error('Unable to sync with DyDx');
+      
+    } catch (error) {
+      console.error('Error syncing with DyDx:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async checkEthereumWallet() {
+    if (window.ethereum) {
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+      if (accounts && accounts.length > 0) {
+        this.wallet = {
+          address: accounts[0],
+          provider: window.ethereum,
+          type: 'ethereum_dydx'
+        };
+        this.isConnected = true;
+        return {
+          success: true,
+          address: accounts[0],
+          type: 'ethereum_dydx',
+          message: 'Synced with Ethereum wallet from DyDx'
+        };
+      }
+    }
+    throw new Error('No Ethereum wallet found');
   }
 
   async checkPhantomWallet() {
