@@ -571,13 +571,13 @@ class DyDxService {
 
   // Direct DyDx integration methods
   async redirectToDyDx() {
-    const dydxUrl = 'https://trade.dydx.exchange/';
+    const dydxUrl = 'https://dydx.trade/trade/BTC-USD';
     window.open(dydxUrl, '_blank');
   }
 
   async openDyDxWithWallet() {
     if (this.isConnected) {
-      const dydxUrl = `https://trade.dydx.exchange/?wallet=${this.wallet.address}`;
+      const dydxUrl = `https://dydx.trade/trade/BTC-USD?wallet=${this.wallet.address}`;
       window.open(dydxUrl, '_blank');
     } else {
       await this.redirectToDyDx();
