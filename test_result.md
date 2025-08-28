@@ -101,3 +101,48 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+## user_problem_statement: "User reported chart styling issues (white text/numbers needed, black box should be white) and wallet connection failing (need Phantom Solana wallet for dYdX instead of current implementation)"
+
+## frontend:
+  - task: "Fix chart text colors to white"
+    implemented: false
+    working: false
+    file: "TradingChart.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "User reports chart times and numbers are not white, black box on chart should be white"
+        
+  - task: "Fix Phantom Solana wallet integration"
+    implemented: false
+    working: false
+    file: "dydxIntegration.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "Current wallet connection is failing, needs proper Phantom Solana integration for dYdX"
+
+## metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+## test_plan:
+  current_focus:
+    - "Fix chart text colors to white"
+    - "Fix Phantom Solana wallet integration"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+## agent_communication:
+    - agent: "main"
+      message: "Starting fixes for chart styling and Phantom Solana wallet integration based on user feedback"
