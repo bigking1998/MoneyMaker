@@ -34,9 +34,21 @@ const whiteTextPlugin = {
   id: 'whiteText',
   beforeDraw(chart) {
     const ctx = chart.ctx;
-    // Force canvas text color to white
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#ffffff';
+    // Override fillText to always use white
+    const originalFillText = ctx.fillText;
+    ctx.fillText = function(text, x, y, maxWidth) {
+      const currentFillStyle = ctx.fillStyle;
+      ctx.fillStyle = '#ffffff';
+      originalFillText.call(ctx, text, x, y, maxWidth);
+      ctx.fillStyle = currentFillStyle;
+    };
+  },
+  afterDraw(chart) {
+    const ctx = chart.ctx;
+    // Restore original fillText
+    if (ctx.originalFillText) {
+      ctx.fillText = ctx.originalFillText;
+    }
   }
 };
 
