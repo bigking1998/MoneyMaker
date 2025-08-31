@@ -198,6 +198,7 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
     maintainAspectRatio: false,
     color: '#ffffff',
     plugins: {
+      whiteText: {},
       legend: {
         display: false,
         labels: {
