@@ -105,6 +105,66 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
 
         const data = generateRealisticData(price, timeframe);
     
+        setChartData({
+          datasets: [
+            {
+              label: symbol,
+              data: data,
+              borderColor: '#ffffff',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.1,
+              pointRadius: 0,
+              pointHoverRadius: 6,
+              pointHoverBackgroundColor: '#ffffff',
+              pointHoverBorderColor: 'rgba(42, 42, 42, 0.8)',
+              pointHoverBorderWidth: 2,
+            }
+          ]
+        });
+      } catch (error) {
+        console.error('Error fetching crypto data:', error);
+        // Fallback to default BTC price if API fails
+        const fallbackPrice = 108914;
+        setCurrentPrice(fallbackPrice);
+        
+        const fallbackData = [{
+          x: new Date(),
+          y: fallbackPrice
+        }];
+        
+        setChartData({
+          datasets: [
+            {
+              label: symbol,
+              data: fallbackData,
+              borderColor: '#ffffff',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.1,
+              pointRadius: 2,
+              pointHoverRadius: 6,
+              pointHoverBackgroundColor: '#ffffff',
+              pointHoverBorderColor: 'rgba(42, 42, 42, 0.8)',
+              pointHoverBorderWidth: 2,
+            }
+          ]
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRealPriceData();
+    
+    // Update data every 30 seconds
+    const interval = setInterval(fetchRealPriceData, 30000);
+    
+    return () => clearInterval(interval);
+  }, [symbol, timeframe]);
+    
     setChartData({
       datasets: [
         {
