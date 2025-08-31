@@ -312,8 +312,6 @@
 
 ## test_plan:
   current_focus:
-    - "Test Freqtrade API endpoints"
-    - "Test Freqtrade strategy creation and signals"
     - "Fix Phantom Solana wallet integration"
   stuck_tasks: 
     - "Test individual crypto pair lookup /api/crypto/pair/{symbol}"
