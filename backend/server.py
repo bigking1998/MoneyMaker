@@ -20,7 +20,7 @@ from datetime import timezone
 
 # Import trading system
 from trading.strategy_manager import strategy_manager
-from trading.strategies.dca_strategy import DCAStrategy, DCAConfig
+from trading.base_strategy import StrategyConfig
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
