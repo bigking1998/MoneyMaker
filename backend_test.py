@@ -236,6 +236,186 @@ class LumaTradeAPITester:
         # This is a placeholder - in a real test we'd use websocket-client library
         self.log_test("WebSocket Endpoint", True, "WebSocket endpoint exists (not tested in this script)")
 
+    def test_freqtrade_endpoints(self):
+        """Test Freqtrade integration endpoints"""
+        # Test 1: List strategies (should be empty initially)
+        success, data, status = self.make_request('GET', 'freqtrade/strategies')
+        
+        if success and 'strategies' in data:
+            initial_count = len(data['strategies'])
+            self.log_test("Freqtrade - List Strategies", True, f"Found {initial_count} strategies initially")
+        else:
+            self.log_test("Freqtrade - List Strategies", False, f"Status: {status}, Data: {data}")
+            return
+        
+        # Test 2: Create a new SMA-RSI strategy
+        strategy_data = {
+            "name": "Test_SMA_RSI_Strategy",
+            "type": "sample",
+            "symbol": "BTC/USD",
+            "timeframe": "5m",
+            "stake_amount": 100,
+            "dry_run": True,
+            "minimal_roi": {"0": 0.04, "20": 0.02, "30": 0.01, "40": 0.0},
+            "stoploss": -0.10
+        }
+        
+        success, data, status = self.make_request('POST', 'freqtrade/strategy/create', strategy_data)
+        
+        if success and data.get('success') and 'strategy_id' in data:
+            strategy_id = data['strategy_id']
+            self.log_test("Freqtrade - Create Strategy", True, f"Created strategy ID: {strategy_id}")
+            
+            # Test 3: Verify strategy was created by listing again
+            success, data, status = self.make_request('GET', 'freqtrade/strategies')
+            
+            if success and len(data.get('strategies', [])) > initial_count:
+                self.log_test("Freqtrade - Verify Strategy Created", True, f"Strategy count increased to {len(data['strategies'])}")
+                
+                # Test 4: Get specific strategy details
+                success, data, status = self.make_request('GET', f'freqtrade/strategy/{strategy_id}')
+                
+                if success and data.get('success') and 'strategy' in data:
+                    strategy_info = data['strategy']
+                    self.log_test("Freqtrade - Get Strategy Details", True, f"Strategy name: {strategy_info.get('name', 'N/A')}")
+                else:
+                    self.log_test("Freqtrade - Get Strategy Details", False, f"Status: {status}")
+                
+                # Test 5: Analyze strategy signals
+                success, data, status = self.make_request('POST', f'freqtrade/strategy/{strategy_id}/analyze')
+                
+                if success and data.get('success') and 'analysis' in data:
+                    analysis = data['analysis']
+                    signal = analysis.get('signal', 'unknown')
+                    indicators = analysis.get('indicators', {})
+                    current_price = analysis.get('current_price')
+                    
+                    self.log_test("Freqtrade - Strategy Analysis", True, 
+                                f"Signal: {signal}, Price: ${current_price}, Indicators: {len(indicators)}")
+                    
+                    # Test 6: Verify technical indicators are calculated
+                    expected_indicators = ['sma30', 'rsi', 'ema21', 'macd']
+                    found_indicators = [ind for ind in expected_indicators if ind in indicators]
+                    
+                    if len(found_indicators) >= 2:  # At least 2 indicators should be present
+                        self.log_test("Freqtrade - Technical Indicators", True, 
+                                    f"Found indicators: {found_indicators}")
+                    else:
+                        self.log_test("Freqtrade - Technical Indicators", False, 
+                                    f"Expected indicators not found. Got: {list(indicators.keys())}")
+                    
+                    # Test 7: Verify signal generation logic
+                    if signal in ['buy', 'sell', 'hold']:
+                        self.log_test("Freqtrade - Signal Generation", True, f"Valid signal: {signal}")
+                    else:
+                        self.log_test("Freqtrade - Signal Generation", False, f"Invalid signal: {signal}")
+                        
+                else:
+                    self.log_test("Freqtrade - Strategy Analysis", False, f"Status: {status}, Data: {data}")
+                
+                # Test 8: Test analyze-all endpoint
+                success, data, status = self.make_request('POST', 'freqtrade/analyze-all')
+                
+                if success and data.get('success') and 'results' in data:
+                    results = data['results']
+                    analyzed_count = data.get('analyzed_count', 0)
+                    self.log_test("Freqtrade - Analyze All Strategies", True, 
+                                f"Analyzed {analyzed_count} strategies")
+                else:
+                    self.log_test("Freqtrade - Analyze All Strategies", False, f"Status: {status}")
+                
+                # Test 9: Delete strategy (cleanup)
+                success, data, status = self.make_request('DELETE', f'freqtrade/strategy/{strategy_id}')
+                
+                if success and data.get('success'):
+                    self.log_test("Freqtrade - Delete Strategy", True, "Strategy deleted successfully")
+                else:
+                    self.log_test("Freqtrade - Delete Strategy", False, f"Status: {status}")
+                    
+            else:
+                self.log_test("Freqtrade - Verify Strategy Created", False, "Strategy count did not increase")
+        else:
+            self.log_test("Freqtrade - Create Strategy", False, f"Status: {status}, Data: {data}")
+
+    def test_freqtrade_data_integration(self):
+        """Test Freqtrade integration with real-time data"""
+        # Test that crypto data is available for Freqtrade analysis
+        success, data, status = self.make_request('GET', 'crypto/pairs')
+        
+        if success and isinstance(data, list) and len(data) > 0:
+            btc_data = None
+            for pair in data:
+                if pair.get('symbol') == 'BTC/USD':
+                    btc_data = pair
+                    break
+            
+            if btc_data:
+                self.log_test("Freqtrade - BTC Data Available", True, 
+                            f"BTC price: ${btc_data.get('price', 'N/A')}")
+                
+                # Create a strategy to test data flow
+                strategy_data = {
+                    "name": "Data_Integration_Test",
+                    "type": "sample",
+                    "symbol": "BTC/USD",
+                    "timeframe": "5m"
+                }
+                
+                success, data, status = self.make_request('POST', 'freqtrade/strategy/create', strategy_data)
+                
+                if success and 'strategy_id' in data:
+                    strategy_id = data['strategy_id']
+                    
+                    # Analyze with current market data
+                    success, data, status = self.make_request('POST', f'freqtrade/strategy/{strategy_id}/analyze')
+                    
+                    if success and 'analysis' in data:
+                        analysis = data['analysis']
+                        current_price = analysis.get('current_price')
+                        
+                        # Verify the analysis uses real market data
+                        if current_price and current_price > 0:
+                            self.log_test("Freqtrade - Real-time Data Integration", True, 
+                                        f"Analysis using real price: ${current_price}")
+                        else:
+                            self.log_test("Freqtrade - Real-time Data Integration", False, 
+                                        "Analysis not using real price data")
+                    else:
+                        self.log_test("Freqtrade - Real-time Data Integration", False, 
+                                    "Failed to analyze with real-time data")
+                    
+                    # Cleanup
+                    self.make_request('DELETE', f'freqtrade/strategy/{strategy_id}')
+                else:
+                    self.log_test("Freqtrade - Real-time Data Integration", False, 
+                                "Failed to create test strategy")
+            else:
+                self.log_test("Freqtrade - BTC Data Available", False, "BTC/USD data not found")
+        else:
+            self.log_test("Freqtrade - BTC Data Available", False, "No crypto data available")
+
+    def test_trading_strategy_manager(self):
+        """Test trading strategy manager endpoints"""
+        # Test strategy manager functionality
+        success, data, status = self.make_request('POST', 'trading/strategy-manager/test')
+        
+        if success and data.get('success'):
+            self.log_test("Trading - Strategy Manager Test", True, 
+                        f"Manager working: {data.get('message', 'N/A')}")
+        else:
+            self.log_test("Trading - Strategy Manager Test", False, f"Status: {status}")
+        
+        # Test lifecycle summary
+        success, data, status = self.make_request('GET', 'trading/lifecycle-summary')
+        
+        if success and data.get('success'):
+            lifecycle_data = data.get('data', {})
+            total_strategies = lifecycle_data.get('total_strategies', 0)
+            self.log_test("Trading - Lifecycle Summary", True, 
+                        f"Total strategies: {total_strategies}")
+        else:
+            self.log_test("Trading - Lifecycle Summary", False, f"Status: {status}")
+
     def test_error_handling(self):
         """Test error handling for invalid requests"""
         # Test invalid crypto pair
@@ -253,6 +433,28 @@ class LumaTradeAPITester:
             self.log_test("Error Handling - Invalid Exchange", True, f"Correctly returned error for invalid exchange")
         else:
             self.log_test("Error Handling - Invalid Exchange", False, f"Should have returned error, got {status}")
+        
+        # Test invalid Freqtrade strategy
+        success, data, status = self.make_request('GET', 'freqtrade/strategy/invalid-id')
+        
+        if not success or status == 404:
+            self.log_test("Error Handling - Invalid Strategy ID", True, f"Correctly returned error for invalid strategy")
+        else:
+            self.log_test("Error Handling - Invalid Strategy ID", False, f"Should have returned 404, got {status}")
+        
+        # Test invalid strategy type
+        invalid_strategy_data = {
+            "name": "Invalid_Strategy",
+            "type": "invalid_type",
+            "symbol": "BTC/USD"
+        }
+        
+        success, data, status = self.make_request('POST', 'freqtrade/strategy/create', invalid_strategy_data)
+        
+        if not success or status >= 400:
+            self.log_test("Error Handling - Invalid Strategy Type", True, f"Correctly rejected invalid strategy type")
+        else:
+            self.log_test("Error Handling - Invalid Strategy Type", False, f"Should have rejected invalid type, got {status}")
 
     def run_all_tests(self):
         """Run all API tests"""
