@@ -577,6 +577,23 @@ const Dashboard = () => {
             cryptoData={cryptoData}
             onCryptoSelect={handleCryptoSelect}
           />
+          {/* Crypto Selector */}
+          <div className="flex gap-2 mb-4 flex-wrap">
+            {cryptoData.slice(0, 8).map((crypto) => (
+              <button
+                key={crypto.symbol}
+                onClick={() => handleCryptoSelect(crypto.symbol)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  selectedCrypto === crypto.symbol
+                    ? 'bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)]'
+                    : 'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]'
+                }`}
+              >
+                {crypto.symbol.replace('/USD', '')}
+              </button>
+            ))}
+          </div>
+          
           <Chart 
             timeframe={selectedTimeframe}
             onTimeframeChange={setSelectedTimeframe}
