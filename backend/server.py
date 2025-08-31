@@ -66,8 +66,8 @@ class CryptoPair(BaseModel):
     base_currency: str
     quote_currency: str
     price: float
-    price_24h_change: float
-    volume_24h: float
+    price_24h_change: float = 0.0  # Default to 0 if not provided
+    volume_24h: float = 0.0        # Default to 0 if not provided
     market_cap: Optional[float] = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
