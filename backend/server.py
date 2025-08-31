@@ -22,6 +22,9 @@ from datetime import timezone
 from trading.strategy_manager import strategy_manager
 from trading.base_strategy import StrategyConfig
 
+# Import freqtrade integration
+from freqtrade_integration.strategy_interface import LumaTradeSampleStrategy, LumaTradeIStrategy
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
