@@ -558,8 +558,8 @@ const FreqtradeTradingPanel = ({
             <button
               onClick={async () => {
                 const result = await onCreateStrategy({
-                  name: "BTC SMA-RSI Strategy",
-                  type: "sample",
+                  name: "RSI MACD Professional Strategy",
+                  type: "rsi_macd",
                   symbol: "BTC/USD",
                   timeframe: "5m",
                   stake_amount: 100,
@@ -571,15 +571,33 @@ const FreqtradeTradingPanel = ({
               }}
               className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
             >
-              📈 Create BTC SMA-RSI Bot
+              📈 RSI + MACD Strategy (Real Backtesting)
             </button>
             <button
               onClick={async () => {
                 const result = await onCreateStrategy({
-                  name: "ETH MACD Strategy", 
-                  type: "sample",
-                  symbol: "ETH/USD",
+                  name: "Breakout Professional Strategy", 
+                  type: "breakout",
+                  symbol: "BTC/USD",
                   timeframe: "15m",
+                  stake_amount: 100,
+                  dry_run: true
+                });
+                if (result) {
+                  setShowCreateForm(false);
+                }
+              }}
+              className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+            >
+              🚀 Breakout Strategy (Real Data)
+            </button>
+            <button
+              onClick={async () => {
+                const result = await onCreateStrategy({
+                  name: "Mean Reversion Professional Strategy",
+                  type: "mean_reversion",
+                  symbol: "BTC/USD",
+                  timeframe: "5m",
                   stake_amount: 50,
                   dry_run: true
                 });
@@ -589,7 +607,7 @@ const FreqtradeTradingPanel = ({
               }}
               className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
             >
-              📊 Create ETH MACD Bot  
+              📊 Mean Reversion Strategy (Real Analysis)
             </button>
           </div>
         </div>
