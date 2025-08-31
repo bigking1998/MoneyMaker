@@ -39,6 +39,11 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
 
   // Fetch real crypto price data
   useEffect(() => {
+    // Cleanup previous chart
+    if (chartRef.current) {
+      chartRef.current.destroy && chartRef.current.destroy();
+    }
+
     const fetchRealPriceData = async () => {
       try {
         setLoading(true);
