@@ -138,25 +138,26 @@ async def fetch_crypto_data():
                     data = await response.json()
                     successful_coins = 0
                     
-                    # Map CoinGecko IDs to symbols
-                    coin_mapping = {
-                        'bitcoin': {'symbol': 'BTC', 'volume': 40000000000},
-                        'ethereum': {'symbol': 'ETH', 'volume': 15000000000},
-                        'solana': {'symbol': 'SOL', 'volume': 2000000000},
-                        'cardano': {'symbol': 'ADA', 'volume': 800000000},
-                        'avalanche-2': {'symbol': 'AVAX', 'volume': 600000000},
-                        'polygon': {'symbol': 'MATIC', 'volume': 500000000},
-                        'chainlink': {'symbol': 'LINK', 'volume': 400000000},
-                        'uniswap': {'symbol': 'UNI', 'volume': 200000000},
-                        'litecoin': {'symbol': 'LTC', 'volume': 1500000000}
-                    }
+                    # Map CoinGecko IDs to symbols - Order matters for priority
+                    coin_mapping = [
+                        ('bitcoin', {'symbol': 'BTC', 'volume': 40000000000}),
+                        ('ethereum', {'symbol': 'ETH', 'volume': 15000000000}),
+                        ('solana', {'symbol': 'SOL', 'volume': 2000000000}),
+                        ('cardano', {'symbol': 'ADA', 'volume': 800000000}),
+                        ('avalanche-2', {'symbol': 'AVAX', 'volume': 600000000}),
+                        ('polygon', {'symbol': 'MATIC', 'volume': 500000000}),
+                        ('chainlink', {'symbol': 'LINK', 'volume': 400000000}),
+                        ('uniswap', {'symbol': 'UNI', 'volume': 200000000}),
+                        ('litecoin', {'symbol': 'LTC', 'volume': 1500000000})
+                    ]
                     
-                    for coin_id, coin_data in data.items():
+                    # Process coins in order to ensure BTC is first
+                    for coin_id, symbol_info in coin_mapping:
                         try:
-                            if coin_id not in coin_mapping:
+                            if coin_id not in data:
                                 continue
                             
-                            symbol_info = coin_mapping[coin_id]
+                            coin_data = data[coin_id]
                             price = coin_data.get('usd', 0)
                             change = coin_data.get('usd_24h_change', 0)
                             market_cap = coin_data.get('usd_market_cap')
