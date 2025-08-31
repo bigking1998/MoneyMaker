@@ -95,20 +95,71 @@ const Header = ({ walletConnected, onConnectWallet, walletAddress, walletType, o
 };
 
 // Price Display Component
-const PriceDisplay = ({ symbol = "BTC/USD", price = 111191, change = -0.48, subPrice = 111129 }) => {
+const PriceDisplay = ({ symbol = "BTC/USD", price = 111191, change = -0.48, subPrice = 111129, cryptoData = [], onCryptoSelect }) => {
   const isPositive = change > 0;
+  
+  // Get the crypto icon based on symbol
+  const getCryptoIcon = (symbol) => {
+    const base = symbol.split('/')[0];
+    const icons = {
+      'BTC': '₿',
+      'ETH': 'Ξ', 
+      'SOL': 'S',
+      'ADA': 'A',
+      'AVAX': 'A',
+      'MATIC': 'M',
+      'LINK': 'L',
+      'UNI': 'U',
+      'LTC': 'L'
+    };
+    return icons[base] || base[0];
+  };
+
+  const getCryptoColor = (symbol) => {
+    const base = symbol.split('/')[0];
+    const colors = {
+      'BTC': 'from-[#f7931a] to-[#d4761a]',
+      'ETH': 'from-[#627eea] to-[#4f6bd5]',
+      'SOL': 'from-[#9945ff] to-[#14f195]',
+      'ADA': 'from-[#0033ad] to-[#1e88e5]',
+      'AVAX': 'from-[#e84142] to-[#c73e39]',
+      'MATIC': 'from-[#8247e5] to-[#6c3fb0]',
+      'LINK': 'from-[#375bd2] to-[#2e4ab8]',
+      'UNI': 'from-[#ff007a] to-[#e6006b]',
+      'LTC': 'from-[#bfbbbb] to-[#8e8b8b]'
+    };
+    return colors[base] || 'from-[#6b7280] to-[#4b5563]';
+  };
   
   return (
     <div className="flex flex-col gap-2 mb-6">
       {/* Trading Pair */}
       <div className="flex items-center gap-3 mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#f7931a] to-[#d4761a] flex items-center justify-center">
-            <span className="text-white font-bold text-lg">₿</span>
+          <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${getCryptoColor(symbol)} flex items-center justify-center cursor-pointer`}>
+            <span className="text-white font-bold text-lg">{getCryptoIcon(symbol)}</span>
           </div>
           <span className="text-2xl font-semibold text-[var(--color-text-primary)]">$</span>
         </div>
-        <span className="text-2xl font-semibold text-[var(--color-text-primary)]">{symbol}</span>
+        <div className="relative">
+          <span className="text-2xl font-semibold text-[var(--color-text-primary)] cursor-pointer">{symbol}</span>
+          {/* Crypto Dropdown */}
+          <div className="absolute top-full left-0 mt-2 bg-[var(--color-surface)] rounded-lg shadow-lg z-10 hidden group-hover:block">
+            {cryptoData.slice(0, 6).map((crypto) => (
+              <button
+                key={crypto.symbol}
+                onClick={() => onCryptoSelect(crypto.symbol)}
+                className="w-full px-4 py-2 text-left hover:bg-[var(--color-surface-elevated)] first:rounded-t-lg last:rounded-b-lg flex items-center gap-2"
+              >
+                <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${getCryptoColor(crypto.symbol)} flex items-center justify-center`}>
+                  <span className="text-white font-bold text-xs">{getCryptoIcon(crypto.symbol)}</span>
+                </div>
+                <span className="text-sm text-[var(--color-text-primary)]">{crypto.symbol}</span>
+                <span className="text-xs text-[var(--color-text-secondary)] ml-auto">${crypto.price.toLocaleString()}</span>
+              </button>
+            ))}
+          </div>
+        </div>
         <span className="text-xl text-[var(--color-text-tertiary)]">⌄</span>
       </div>
 
