@@ -18,6 +18,10 @@ import numpy as np
 from collections import defaultdict
 from datetime import timezone
 
+# Import trading system
+from trading.strategy_manager import strategy_manager
+from trading.strategies.dca_strategy import DCAStrategy, DCAConfig
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
