@@ -177,6 +177,30 @@
           agent: "testing"
           comment: "Exchange prices endpoint has same URL path parameter issue with '/' character. Aggregated endpoint works fine as alternative."
 
+  - task: "Test Freqtrade API endpoints"
+    implemented: true
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Need to test Freqtrade endpoints: /api/freqtrade/strategies (list), /api/freqtrade/strategies (create), /api/freqtrade/analyze"
+
+  - task: "Test Freqtrade strategy creation and signals"
+    implemented: true
+    working: "NA"
+    file: "freqtrade_integration/strategy_interface.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Need to test end-to-end strategy creation, signal generation, and data flow to frontend"
+
   - task: "Verify BTC data prioritization and JSON format"
     implemented: true
     working: true
