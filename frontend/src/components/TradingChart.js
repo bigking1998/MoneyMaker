@@ -231,6 +231,7 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
         }
       },
       y: {
+        type: 'linear',
         position: 'right',
         beginAtZero: false,
         grid: {
