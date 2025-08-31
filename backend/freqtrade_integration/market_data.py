@@ -18,7 +18,7 @@ class MarketDataFetcher:
     def __init__(self):
         self.exchanges = {
             'binance': ccxt.binance(),
-            'coinbasepro': ccxt.coinbasepro(),
+            'coinbase': ccxt.coinbase(),
             'kraken': ccxt.kraken()
         }
         
