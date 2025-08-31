@@ -127,7 +127,7 @@ async def fetch_crypto_data():
         async with aiohttp.ClientSession() as session:
             url = "https://api.coingecko.com/api/v3/simple/price"
             params = {
-                'ids': 'bitcoin,ethereum,solana,cardano,avalanche-2,polygon,chainlink,uniswap,litecoin',
+                'ids': 'bitcoin,ethereum,solana,cardano,avalanche-2,matic-network,chainlink,uniswap,litecoin',
                 'vs_currencies': 'usd',
                 'include_24hr_change': 'true',
                 'include_market_cap': 'true'
