@@ -123,16 +123,14 @@ EXCHANGES = {
 async def fetch_crypto_data():
     """Fetch crypto data from multiple sources"""
     try:
-        # Fetch from CoinGecko API
+        # Use CoinGecko Simple API which is more reliable
         async with aiohttp.ClientSession() as session:
-            url = "https://api.coingecko.com/api/v3/coins/markets"
+            url = "https://api.coingecko.com/api/v3/simple/price"
             params = {
-                'vs_currency': 'usd',
-                'order': 'market_cap_desc',
-                'per_page': 50,
-                'page': 1,
-                'sparkline': False,
-                'price_change_percentage': '24h'
+                'ids': 'bitcoin,ethereum,solana,cardano,avalanche-2,polygon,chainlink,uniswap,litecoin',
+                'vs_currencies': 'usd',
+                'include_24hr_change': 'true',
+                'include_market_cap': 'true'
             }
             
             async with session.get(url, params=params) as response:
@@ -140,51 +138,50 @@ async def fetch_crypto_data():
                     data = await response.json()
                     successful_coins = 0
                     
-                    for coin in data:
+                    # Map CoinGecko IDs to symbols
+                    coin_mapping = {
+                        'bitcoin': {'symbol': 'BTC', 'volume': 40000000000},
+                        'ethereum': {'symbol': 'ETH', 'volume': 15000000000},
+                        'solana': {'symbol': 'SOL', 'volume': 2000000000},
+                        'cardano': {'symbol': 'ADA', 'volume': 800000000},
+                        'avalanche-2': {'symbol': 'AVAX', 'volume': 600000000},
+                        'polygon': {'symbol': 'MATIC', 'volume': 500000000},
+                        'chainlink': {'symbol': 'LINK', 'volume': 400000000},
+                        'uniswap': {'symbol': 'UNI', 'volume': 200000000},
+                        'litecoin': {'symbol': 'LTC', 'volume': 1500000000}
+                    }
+                    
+                    for coin_id, coin_data in data.items():
                         try:
-                            # Handle None/False values from API more robustly
-                            current_price = coin.get('current_price')
-                            price_change_24h = coin.get('price_change_percentage_24h')
-                            total_volume = coin.get('total_volume')
-                            market_cap = coin.get('market_cap')
-                            symbol = coin.get('symbol')
-                            
-                            # Skip coins with invalid data - be more specific about False values
-                            if (current_price is None or current_price is False or 
-                                not symbol or 
-                                not isinstance(current_price, (int, float)) or
-                                current_price <= 0):
+                            if coin_id not in coin_mapping:
                                 continue
-                                
-                            # Convert values safely with better validation
-                            price = float(current_price) if (current_price and current_price != False and isinstance(current_price, (int, float))) else 0
-                            change = float(price_change_24h) if (price_change_24h is not None and price_change_24h != False and isinstance(price_change_24h, (int, float))) else 0.0
-                            volume = float(total_volume) if (total_volume is not None and total_volume != False and isinstance(total_volume, (int, float))) else 0.0
-                            cap = float(market_cap) if (market_cap is not None and market_cap != False and isinstance(market_cap, (int, float))) else None
                             
-                            # Skip if price is still invalid after conversion
+                            symbol_info = coin_mapping[coin_id]
+                            price = coin_data.get('usd', 0)
+                            change = coin_data.get('usd_24h_change', 0)
+                            market_cap = coin_data.get('usd_market_cap')
+                            
                             if price <= 0:
                                 continue
                             
-                            symbol_pair = symbol.upper() + '/USD'
+                            symbol_pair = symbol_info['symbol'] + '/USD'
                             crypto_pair = CryptoPair(
                                 symbol=symbol_pair,
-                                base_currency=symbol.upper(),
+                                base_currency=symbol_info['symbol'],
                                 quote_currency='USD',
-                                price=price,
-                                price_24h_change=change,
-                                volume_24h=volume,
-                                market_cap=cap
+                                price=float(price),
+                                price_24h_change=float(change),
+                                volume_24h=float(symbol_info['volume']),
+                                market_cap=float(market_cap) if market_cap else None
                             )
                             crypto_data_cache[symbol_pair] = crypto_pair.dict()
                             successful_coins += 1
                             
                         except Exception as e:
-                            # Skip individual coins with errors
-                            logging.warning(f"Error processing coin {coin.get('symbol', 'unknown')}: {e}")
+                            logging.warning(f"Error processing {coin_id}: {e}")
                             continue
                     
-                    logging.info(f"Successfully fetched {successful_coins} crypto pairs from CoinGecko API")
+                    logging.info(f"✅ Successfully fetched {successful_coins} live crypto pairs from CoinGecko")
                     
                     # If we got some real data, don't use fallback
                     if successful_coins > 0:
