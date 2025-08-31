@@ -571,14 +571,16 @@ const Dashboard = () => {
         {/* Main Content */}
         <div className="lg:col-span-3">
           <PriceDisplay 
-            symbol="BTC/USD"
+            symbol={selectedCrypto}
             price={currentPrice?.price || 108948}
             change={currentPrice?.price_24h_change || 0.10}
+            cryptoData={cryptoData}
+            onCryptoSelect={handleCryptoSelect}
           />
           <Chart 
             timeframe={selectedTimeframe}
             onTimeframeChange={setSelectedTimeframe}
-            symbol="BTC/USD"
+            symbol={selectedCrypto}
           />
           <ExchangeList exchanges={exchangeData} />
         </div>
