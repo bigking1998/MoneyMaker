@@ -903,21 +903,10 @@ const Dashboard = () => {
 
             {/* Original Trading Panel */}
             {!showFreqtradePanel && (
-              <>
-                <TradingPanel 
-                  walletConnected={walletConnected}
-                  onConnectWallet={handleConnectWallet}
-                />
-
-                <DyDxPanel
-                  walletConnected={walletConnected}
-                  walletAddress={walletAddress}
-                  walletType={walletType}
-                  onConnect={handleConnectWallet}
-                  onOpenDyDx={handleOpenDyDx}
-                  markets={dydxMarkets}
-                />
-              </>
+              <TradingPanel 
+                currentPrice={currentPrice?.price || 108948}
+                onTrade={handleTrade}
+              />
             )}
           </div>
         </div>
