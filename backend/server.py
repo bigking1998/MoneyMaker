@@ -23,7 +23,9 @@ from trading.strategy_manager import strategy_manager
 from trading.base_strategy import StrategyConfig
 
 # Import freqtrade integration
-from freqtrade_integration.strategy_interface import LumaTradeSampleStrategy, LumaTradeIStrategy
+from freqtrade_integration.strategy_interface import LumaTradeSampleStrategy
+from freqtrade_integration.real_strategies import REAL_STRATEGIES
+from freqtrade_integration.market_data import market_data_fetcher, LumaTradeIStrategy
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
