@@ -905,7 +905,8 @@ const Dashboard = () => {
             {!showFreqtradePanel && (
               <TradingPanel 
                 currentPrice={currentPrice?.price || 108948}
-                onTrade={handleTrade}
+                walletConnected={walletConnected}
+                onConnectWallet={handleConnectWallet}
               />
             )}
           </div>
