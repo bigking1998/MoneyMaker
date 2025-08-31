@@ -210,8 +210,8 @@ async def add_fallback_crypto_data():
             'symbol': 'BTC/USD',
             'base_currency': 'BTC',
             'quote_currency': 'USD',
-            'price': 111191.00,  # Current BTC price from DyDx
-            'price_24h_change': -0.48,
+            'price': 108914.00,  # Current BTC price as of Aug 31, 2025
+            'price_24h_change': 0.03,
             'volume_24h': 41279197.0,
             'market_cap': 2200000000000.0,
             'timestamp': datetime.utcnow().isoformat(),
