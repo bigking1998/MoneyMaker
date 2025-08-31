@@ -475,6 +475,12 @@ class LumaTradeAPITester:
         self.test_portfolio_endpoints()
         self.test_trades_endpoints()
         
+        # Freqtrade integration tests (NEW)
+        print("\n🤖 Testing Freqtrade Integration...")
+        self.test_freqtrade_endpoints()
+        self.test_freqtrade_data_integration()
+        self.test_trading_strategy_manager()
+        
         # WebSocket and error handling
         self.test_websocket_endpoint()
         self.test_error_handling()
