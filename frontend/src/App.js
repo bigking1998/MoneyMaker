@@ -921,111 +921,15 @@ const Dashboard = () => {
         {/* Trading Panel */}
         <div className="lg:col-span-2">
           <div className="space-y-6">
-            {/* Freqtrade Panel - MAIN FEATURE */}
-            <div className="bg-[var(--color-surface)] rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
-                  🤖 Freqtrade Trading Strategies
-                </h3>
-                <button
-                  onClick={async () => {
-                    const result = await createFreqtradeStrategy({
-                      name: "Quick Test Strategy",
-                      type: "sample",
-                      symbol: "BTC/USD",
-                      timeframe: "5m",
-                      stake_amount: 100,
-                      dry_run: true
-                    });
-                    if (result) {
-                      console.log("Strategy created:", result);
-                    }
-                  }}
-                  className="px-4 py-2 bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)] rounded-lg font-medium hover:opacity-80"
-                >
-                  Create Test Strategy
-                </button>
-              </div>
-
-              {/* Strategy List */}
-              <div className="space-y-3">
-                {freqtradeStrategies.length > 0 ? (
-                  freqtradeStrategies.map((strategy, index) => (
-                    <div
-                      key={strategy.id || index}
-                      className="p-4 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-accent-lime)]/50"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-[var(--color-text-primary)]">
-                          {strategy.name || 'Freqtrade Strategy'}
-                        </h4>
-                        <button
-                          onClick={async () => {
-                            const analysis = await analyzeStrategy(strategy.id);
-                            console.log("Analysis result:", analysis);
-                          }}
-                          className="px-3 py-1 bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)] rounded text-sm font-medium"
-                        >
-                          Analyze Now
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-[var(--color-text-secondary)]">
-                        <span>Timeframe: {strategy.timeframe || '5m'}</span>
-                        <span>Stop Loss: {((strategy.stoploss || -0.1) * 100).toFixed(1)}%</span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-[var(--color-text-secondary)]">
-                    <div className="text-4xl mb-2">🤖</div>
-                    <p className="mb-2">No trading strategies yet.</p>
-                    <p className="text-sm">Click "Create Test Strategy" to start!</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Latest Analysis Results */}
-              {strategyAnalysis && (
-                <div className="mt-6 p-4 bg-[var(--color-surface-elevated)] rounded-lg">
-                  <h4 className="text-lg font-medium mb-3 text-[var(--color-text-primary)]">
-                    Latest Analysis Results
-                  </h4>
-                  
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="text-2xl">
-                      {strategyAnalysis.signal === 'buy' ? '📈' : 
-                       strategyAnalysis.signal === 'sell' ? '📉' : '⏸️'}
-                    </span>
-                    <div>
-                      <div className={`text-xl font-bold ${
-                        strategyAnalysis.signal === 'buy' ? 'text-green-400' : 
-                        strategyAnalysis.signal === 'sell' ? 'text-red-400' : 'text-gray-400'
-                      }`}>
-                        {strategyAnalysis.signal?.toUpperCase() || 'HOLD'}
-                      </div>
-                      <div className="text-sm text-[var(--color-text-secondary)]">
-                        {strategyAnalysis.symbol} • ${strategyAnalysis.current_price?.toLocaleString() || 'N/A'}
-                      </div>
-                    </div>
-                  </div>
-
-                  {strategyAnalysis.indicators && Object.keys(strategyAnalysis.indicators).length > 0 && (
-                    <div className="grid grid-cols-2 gap-4">
-                      {Object.entries(strategyAnalysis.indicators).map(([key, value]) => (
-                        <div key={key} className="flex justify-between">
-                          <span className="text-[var(--color-text-secondary)] capitalize">
-                            {key.replace('_', ' ')}:
-                          </span>
-                          <span className="text-[var(--color-text-primary)] font-medium">
-                            {typeof value === 'number' ? value.toFixed(2) : value}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            {/* Freqtrade Trading Panel - MAIN FEATURE */}
+            <FreqtradeTradingPanel
+              freqtradeStrategies={freqtradeStrategies}
+              selectedStrategy={selectedStrategy}
+              onSelectStrategy={setSelectedStrategy}
+              onCreateStrategy={createFreqtradeStrategy}
+              onAnalyzeStrategy={analyzeStrategy}
+              strategyAnalysis={strategyAnalysis}
+            />
 
             {/* dYdX Connection for Real Trading */}
             <div className="bg-[var(--color-surface)] rounded-lg p-6">
