@@ -15,7 +15,7 @@ import json
 
 def create_sample_data():
     """Create sample OHLCV data for testing"""
-    dates = pd.date_range(start='2025-01-01', periods=50, freq='5T')
+    dates = pd.date_range(start='2025-01-01', periods=50, freq='5min')
     data = []
     
     for i, date in enumerate(dates):
