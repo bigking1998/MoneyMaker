@@ -211,8 +211,15 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
         ticks: {
           color: '#ffffff',
           font: {
-            size: 12
+            size: 12,
+            weight: 'bold'
           }
+        },
+        title: {
+          display: false
+        },
+        border: {
+          color: 'rgba(255, 255, 255, 0.2)'
         }
       },
       y: {
@@ -238,6 +245,9 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
         },
         title: {
           display: false
+        },
+        border: {
+          color: 'rgba(255, 255, 255, 0.2)'
         }
       }
     },
