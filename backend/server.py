@@ -579,7 +579,243 @@ logger = logging.getLogger(__name__)
 
 # Initialize trading system
 
-# Basic Trading API Endpoints for Task Testing
+# Freqtrade Integration API Endpoints
+@app.post("/api/freqtrade/strategy/create")
+async def create_freqtrade_strategy(strategy_data: dict):
+    """Create a new freqtrade strategy"""
+    try:
+        strategy_name = strategy_data.get("name", f"FreqStrategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+        strategy_type = strategy_data.get("type", "sample")  # Default to sample strategy
+        symbol = strategy_data.get("symbol", "BTC/USD")
+        
+        # Configure freqtrade strategy
+        config = {
+            'strategy_name': strategy_name,
+            'symbol': symbol,
+            'timeframe': strategy_data.get('timeframe', '5m'),
+            'stake_amount': strategy_data.get('stake_amount', 100),
+            'dry_run': strategy_data.get('dry_run', True),
+            'minimal_roi': strategy_data.get('minimal_roi', {"0": 0.04}),
+            'stoploss': strategy_data.get('stoploss', -0.10)
+        }
+        
+        # Create strategy instance
+        if strategy_type == "sample":
+            strategy = LumaTradeSampleStrategy(config)
+        else:
+            raise HTTPException(status_code=400, detail=f"Unknown freqtrade strategy type: {strategy_type}")
+        
+        # Store strategy in global dict for now (later will use proper storage)
+        if not hasattr(app.state, 'freqtrade_strategies'):
+            app.state.freqtrade_strategies = {}
+        
+        strategy_id = str(uuid.uuid4())
+        app.state.freqtrade_strategies[strategy_id] = strategy
+        
+        return {
+            "success": True,
+            "strategy_id": strategy_id,
+            "strategy_info": strategy.get_strategy_info(),
+            "message": f"Freqtrade strategy '{strategy_name}' created successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/freqtrade/strategies")
+async def get_freqtrade_strategies():
+    """Get all freqtrade strategies"""
+    if not hasattr(app.state, 'freqtrade_strategies'):
+        app.state.freqtrade_strategies = {}
+    
+    strategies = []
+    for strategy_id, strategy in app.state.freqtrade_strategies.items():
+        strategy_info = strategy.get_strategy_info()
+        strategy_info['id'] = strategy_id
+        strategies.append(strategy_info)
+    
+    return {
+        "success": True,
+        "strategies": strategies,
+        "total": len(strategies)
+    }
+
+@app.post("/api/freqtrade/strategy/{strategy_id}/analyze")
+async def analyze_freqtrade_strategy(strategy_id: str):
+    """Run freqtrade strategy analysis on current market data"""
+    try:
+        if not hasattr(app.state, 'freqtrade_strategies'):
+            app.state.freqtrade_strategies = {}
+        
+        if strategy_id not in app.state.freqtrade_strategies:
+            raise HTTPException(status_code=404, detail="Strategy not found")
+        
+        strategy = app.state.freqtrade_strategies[strategy_id]
+        
+        # Get current market data for the strategy's symbol
+        symbol = getattr(strategy, 'lumatrade_config', {}).get('symbol', 'BTC/USD')
+        
+        # Convert LumaTrade price data to OHLCV DataFrame format
+        ohlcv_data = await convert_lumatrade_to_ohlcv(symbol)
+        
+        if ohlcv_data.empty:
+            raise HTTPException(status_code=400, detail="No market data available")
+        
+        # Run strategy analysis
+        metadata = {'pair': symbol, 'timeframe': strategy.timeframe}
+        analysis_result = strategy.analyze_lumatrade(ohlcv_data, metadata)
+        
+        # Update strategy trade count
+        if hasattr(strategy, 'trade_count'):
+            strategy.trade_count += 1
+        
+        return {
+            "success": True,
+            "strategy_id": strategy_id,
+            "analysis": {
+                "signal": analysis_result.get('signal', 'hold'),
+                "indicators": analysis_result.get('indicators', {}),
+                "entry_signals": analysis_result.get('entry_signals', {}),
+                "exit_signals": analysis_result.get('exit_signals', {}),
+                "analysis_time": analysis_result.get('analysis_time').isoformat() if analysis_result.get('analysis_time') else None,
+                "symbol": symbol,
+                "current_price": ohlcv_data['close'].iloc[-1] if not ohlcv_data.empty else None
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/freqtrade/strategy/{strategy_id}")
+async def get_freqtrade_strategy(strategy_id: str):
+    """Get detailed information about a specific freqtrade strategy"""
+    if not hasattr(app.state, 'freqtrade_strategies'):
+        app.state.freqtrade_strategies = {}
+    
+    if strategy_id not in app.state.freqtrade_strategies:
+        raise HTTPException(status_code=404, detail="Strategy not found")
+    
+    strategy = app.state.freqtrade_strategies[strategy_id]
+    strategy_info = strategy.get_strategy_info()
+    strategy_info['id'] = strategy_id
+    
+    return {
+        "success": True,
+        "strategy": strategy_info
+    }
+
+@app.delete("/api/freqtrade/strategy/{strategy_id}")
+async def delete_freqtrade_strategy(strategy_id: str):
+    """Delete a freqtrade strategy"""
+    if not hasattr(app.state, 'freqtrade_strategies'):
+        app.state.freqtrade_strategies = {}
+    
+    if strategy_id not in app.state.freqtrade_strategies:
+        raise HTTPException(status_code=404, detail="Strategy not found")
+    
+    del app.state.freqtrade_strategies[strategy_id]
+    
+    return {
+        "success": True,
+        "message": "Strategy deleted successfully"
+    }
+
+async def convert_lumatrade_to_ohlcv(symbol: str, periods: int = 50) -> pd.DataFrame:
+    """Convert LumaTrade market data to freqtrade OHLCV format"""
+    try:
+        # Get current crypto data
+        if symbol in crypto_data_cache:
+            current_price = crypto_data_cache[symbol]['price']
+        else:
+            # Fallback to BTC if symbol not found
+            current_price = crypto_data_cache.get('BTC/USD', {}).get('price', 108000)
+        
+        # For now, generate realistic OHLCV data based on current price
+        # In production, this would fetch from exchange or data provider
+        import numpy as np
+        from datetime import timedelta
+        
+        np.random.seed(42)  # Consistent data for testing
+        end_time = datetime.now(timezone.utc)
+        start_time = end_time - timedelta(minutes=periods * 5)  # 5-minute candles
+        
+        dates = pd.date_range(start=start_time, end=end_time, freq='5min')[:periods]
+        
+        # Generate realistic price movement
+        base_price = current_price
+        price_changes = np.random.normal(0, 0.001, len(dates))
+        
+        ohlcv_data = []
+        for i, date in enumerate(dates):
+            if i == 0:
+                open_price = base_price
+            else:
+                open_price = ohlcv_data[i-1]['close']
+            
+            change = price_changes[i]
+            close = open_price * (1 + change)
+            high = max(open_price, close) * (1 + abs(np.random.normal(0, 0.002)))
+            low = min(open_price, close) * (1 - abs(np.random.normal(0, 0.002)))
+            volume = np.random.randint(100, 1000)
+            
+            ohlcv_data.append({
+                'date': date,
+                'open': open_price,
+                'high': high,
+                'low': low, 
+                'close': close,
+                'volume': volume
+            })
+        
+        df = pd.DataFrame(ohlcv_data)
+        df.set_index('date', inplace=True)
+        
+        # Ensure the last price matches current market price
+        if not df.empty:
+            df.loc[df.index[-1], 'close'] = current_price
+        
+        return df
+        
+    except Exception as e:
+        logging.error(f"Error converting to OHLCV format: {e}")
+        return pd.DataFrame()
+
+# Auto-analysis for running strategies
+@app.post("/api/freqtrade/analyze-all")
+async def analyze_all_strategies():
+    """Analyze all freqtrade strategies with current market data"""
+    if not hasattr(app.state, 'freqtrade_strategies'):
+        app.state.freqtrade_strategies = {}
+    
+    results = []
+    for strategy_id, strategy in app.state.freqtrade_strategies.items():
+        try:
+            symbol = getattr(strategy, 'lumatrade_config', {}).get('symbol', 'BTC/USD')
+            ohlcv_data = await convert_lumatrade_to_ohlcv(symbol)
+            
+            if not ohlcv_data.empty:
+                metadata = {'pair': symbol, 'timeframe': strategy.timeframe}
+                analysis = strategy.analyze_lumatrade(ohlcv_data, metadata)
+                
+                results.append({
+                    "strategy_id": strategy_id,
+                    "strategy_name": strategy.__class__.__name__,
+                    "symbol": symbol,
+                    "signal": analysis.get('signal', 'hold'),
+                    "indicators": analysis.get('indicators', {}),
+                    "analysis_time": analysis.get('analysis_time').isoformat() if analysis.get('analysis_time') else None
+                })
+        except Exception as e:
+            results.append({
+                "strategy_id": strategy_id,
+                "error": str(e)
+            })
+    
+    return {
+        "success": True,
+        "results": results,
+        "analyzed_count": len([r for r in results if 'error' not in r])
+    }
 @app.post("/api/trading/strategy-manager/test")
 async def test_strategy_manager():
     """Test endpoint for strategy manager functionality"""
