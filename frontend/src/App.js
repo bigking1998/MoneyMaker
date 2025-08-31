@@ -432,6 +432,9 @@ const FreqtradePanel = ({
     </div>
   );
 };
+
+// Exchange List Component  
+const ExchangeList = ({ exchanges = [] }) => {
   const defaultExchanges = [
     { exchange: "UniSwap", symbol: "BTC/USD", price: 3615.32, amount: "1.6254 ETH", status: "limited", volume: "$5,875.00" },
     { exchange: "SushiSwap", symbol: "BTC/USD", price: 3617.12, amount: "1.6203 ETH", status: "trending", volume: "$5,860.12" },
