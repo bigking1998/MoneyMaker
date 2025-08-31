@@ -774,7 +774,7 @@ async def analyze_all_strategies():
         try:
             symbol = getattr(strategy, 'lumatrade_config', {}).get('symbol', 'BTC/USD')
             timeframe = getattr(strategy, 'timeframe', '5m')
-            ohlcv_data = await convert_lumatrade_to_ohlcv(symbol, timeframe)
+            ohlcv_data = await dydx_market_data_fetcher.fetch_ohlcv_data(symbol, timeframe)
             
             if not ohlcv_data.empty:
                 metadata = {'pair': symbol, 'timeframe': strategy.timeframe}
