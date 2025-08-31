@@ -173,7 +173,13 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
     // Update data every 30 seconds
     const interval = setInterval(fetchRealPriceData, 30000);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      // Cleanup chart on unmount
+      if (chartRef.current) {
+        chartRef.current.destroy && chartRef.current.destroy();
+      }
+    };
   }, [symbol, timeframe]);
 
   const options = {
