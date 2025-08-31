@@ -396,6 +396,12 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [walletType, setWalletType] = useState("");
   const [dydxMarkets, setDydxMarkets] = useState([]);
+  
+  // Freqtrade integration state
+  const [freqtradeStrategies, setFreqtradeStrategies] = useState([]);
+  const [selectedStrategy, setSelectedStrategy] = useState(null);
+  const [strategyAnalysis, setStrategyAnalysis] = useState(null);
+  const [showFreqtradePanel, setShowFreqtradePanel] = useState(false);
 
   // Initialize DyDx service
   useEffect(() => {
