@@ -727,65 +727,39 @@ async def delete_freqtrade_strategy(strategy_id: str):
         "message": "Strategy deleted successfully"
     }
 
-async def convert_lumatrade_to_ohlcv(symbol: str, periods: int = 50) -> pd.DataFrame:
-    """Convert LumaTrade market data to freqtrade OHLCV format"""
+async def convert_lumatrade_to_ohlcv(symbol: str, timeframe: str = '5m', limit: int = 200) -> pd.DataFrame:
+    """
+    Convert LumaTrade price data to OHLCV DataFrame format for Freqtrade analysis
+    Now uses real market data instead of mock data
+    """
     try:
-        # Get current crypto data
-        if symbol in crypto_data_cache:
-            current_price = crypto_data_cache[symbol]['price']
-        else:
-            # Fallback to BTC if symbol not found
-            current_price = crypto_data_cache.get('BTC/USD', {}).get('price', 108000)
+        # Fetch real market data
+        ohlcv_data = await market_data_fetcher.fetch_ohlcv_data(symbol, timeframe, limit)
         
-        # For now, generate realistic OHLCV data based on current price
-        # In production, this would fetch from exchange or data provider
-        import numpy as np
-        from datetime import timedelta
+        if ohlcv_data.empty:
+            raise ValueError(f"No market data available for {symbol}")
         
-        np.random.seed(42)  # Consistent data for testing
-        end_time = datetime.now(timezone.utc)
-        start_time = end_time - timedelta(minutes=periods * 5)  # 5-minute candles
+        # Ensure all required columns exist
+        required_columns = ['open', 'high', 'low', 'close', 'volume']
+        for col in required_columns:
+            if col not in ohlcv_data.columns:
+                raise ValueError(f"Missing required column: {col}")
         
-        dates = pd.date_range(start=start_time, end=end_time, freq='5min')[:periods]
+        # Convert to float and handle any remaining NaN values
+        for col in required_columns:
+            ohlcv_data[col] = pd.to_numeric(ohlcv_data[col], errors='coerce')
         
-        # Generate realistic price movement
-        base_price = current_price
-        price_changes = np.random.normal(0, 0.001, len(dates))
+        ohlcv_data = ohlcv_data.dropna()
         
-        ohlcv_data = []
-        for i, date in enumerate(dates):
-            if i == 0:
-                open_price = base_price
-            else:
-                open_price = ohlcv_data[i-1]['close']
-            
-            change = price_changes[i]
-            close = open_price * (1 + change)
-            high = max(open_price, close) * (1 + abs(np.random.normal(0, 0.002)))
-            low = min(open_price, close) * (1 - abs(np.random.normal(0, 0.002)))
-            volume = np.random.randint(100, 1000)
-            
-            ohlcv_data.append({
-                'date': date,
-                'open': open_price,
-                'high': high,
-                'low': low, 
-                'close': close,
-                'volume': volume
-            })
+        if ohlcv_data.empty:
+            raise ValueError("No valid OHLCV data after cleaning")
         
-        df = pd.DataFrame(ohlcv_data)
-        df.set_index('date', inplace=True)
-        
-        # Ensure the last price matches current market price
-        if not df.empty:
-            df.loc[df.index[-1], 'close'] = current_price
-        
-        return df
+        print(f"✅ Converted {len(ohlcv_data)} candles for {symbol} analysis")
+        return ohlcv_data
         
     except Exception as e:
-        logging.error(f"Error converting to OHLCV format: {e}")
-        return pd.DataFrame()
+        logger.error(f"Error converting to OHLCV for {symbol}: {e}")
+        raise HTTPException(status_code=400, detail=f"Failed to get market data: {str(e)}")
 
 # Auto-analysis for running strategies
 @app.post("/api/freqtrade/analyze-all")
