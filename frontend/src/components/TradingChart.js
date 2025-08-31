@@ -213,6 +213,8 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
       },
       y: {
         position: 'right',
+        min: currentPrice ? currentPrice * 0.95 : undefined,
+        max: currentPrice ? currentPrice * 1.05 : undefined,
         grid: {
           color: 'rgba(255, 255, 255, 0.1)',
           borderColor: 'rgba(255, 255, 255, 0.2)',
@@ -220,11 +222,18 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
         ticks: {
           color: '#ffffff',
           font: {
-            size: 12
+            size: 12,
+            weight: 'bold'
           },
           callback: function(value) {
-            return '$' + value.toLocaleString();
+            return '$' + value.toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            });
           }
+        },
+        title: {
+          display: false
         }
       }
     },
