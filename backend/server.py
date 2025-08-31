@@ -157,10 +157,10 @@ async def fetch_crypto_data():
                                 continue
                                 
                             # Convert values safely with better validation
-                            price = float(current_price) if current_price and current_price != False else 0
-                            change = float(price_change_24h) if price_change_24h is not None and price_change_24h != False else 0
-                            volume = float(total_volume) if total_volume is not None and total_volume != False else 0
-                            cap = float(market_cap) if market_cap is not None and market_cap != False else None
+                            price = float(current_price) if (current_price and current_price != False and isinstance(current_price, (int, float))) else 0
+                            change = float(price_change_24h) if (price_change_24h is not None and price_change_24h != False and isinstance(price_change_24h, (int, float))) else 0.0
+                            volume = float(total_volume) if (total_volume is not None and total_volume != False and isinstance(total_volume, (int, float))) else 0.0
+                            cap = float(market_cap) if (market_cap is not None and market_cap != False and isinstance(market_cap, (int, float))) else None
                             
                             # Skip if price is still invalid after conversion
                             if price <= 0:
