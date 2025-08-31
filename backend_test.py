@@ -38,6 +38,8 @@ class LumaTradeAPITester:
                 response = requests.get(url, timeout=timeout)
             elif method.upper() == 'POST':
                 response = requests.post(url, json=data, timeout=timeout)
+            elif method.upper() == 'DELETE':
+                response = requests.delete(url, timeout=timeout)
             else:
                 return False, {}, 0
                 
