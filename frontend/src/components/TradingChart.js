@@ -30,6 +30,18 @@ ChartJS.register(
 ChartJS.defaults.color = '#ffffff';
 ChartJS.defaults.borderColor = 'rgba(255, 255, 255, 0.2)';
 ChartJS.defaults.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+ChartJS.defaults.scale = {
+  ticks: {
+    color: '#ffffff'
+  }
+};
+ChartJS.defaults.scales = {
+  linear: {
+    ticks: {
+      color: '#ffffff'
+    }
+  }
+};
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
