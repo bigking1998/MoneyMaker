@@ -383,6 +383,16 @@ async def update_crypto_data():
                 'data': dict(list(crypto_data_cache.items())[:20])  # Send top 20
             })
             
+            # Update trading strategies with market data
+            for symbol, crypto_data in crypto_data_cache.items():
+                market_data = {
+                    'price': crypto_data['price'],
+                    'volume': crypto_data.get('volume_24h', 0),
+                    'change_24h': crypto_data.get('price_24h_change', 0),
+                    'timestamp': crypto_data.get('timestamp', datetime.utcnow())
+                }
+                strategy_manager.update_market_data(symbol, market_data)
+            
         if exchange_prices_cache:
             await manager.broadcast({
                 'type': 'exchange_update', 
