@@ -262,3 +262,21 @@
     @apply h-[300px] p-4;
   }
 }
+
+/* Chart.js specific overrides for white text */
+.chart-wrapper canvas {
+  color: #ffffff !important;
+}
+
+/* Force white text on Chart.js elements */
+canvas {
+  --color-text: #ffffff;
+}
+
+/* Chart.js tick colors */
+.chartjs-axis-label,
+.chartjs-scale-label,
+.tick {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
