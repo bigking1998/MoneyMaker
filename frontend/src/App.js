@@ -341,6 +341,7 @@ const Dashboard = () => {
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1h");
+  const [selectedCrypto, setSelectedCrypto] = useState("BTC/USD");
   const [isLoading, setIsLoading] = useState(true);
   const [walletType, setWalletType] = useState("");
   const [dydxMarkets, setDydxMarkets] = useState([]);
