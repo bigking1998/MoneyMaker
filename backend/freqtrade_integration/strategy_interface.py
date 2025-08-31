@@ -163,11 +163,23 @@ class LumaTradeIStrategy(FreqtradeIStrategy):
         """Extract indicator values from the latest row"""
         indicators = {}
         
-        # Common indicators to extract
-        indicator_cols = ['sma', 'ema', 'rsi', 'macd', 'bb_upperband', 'bb_lowerband', 'adx']
+        # All possible indicator columns to extract (including specific names)
+        indicator_patterns = [
+            'sma', 'sma30', 'sma50', 'sma200',  # Simple Moving Averages
+            'ema', 'ema21', 'ema50', 'ema200',  # Exponential Moving Averages
+            'rsi',                               # Relative Strength Index
+            'macd', 'macdsignal', 'macdhist',   # MACD indicators
+            'bb_upperband', 'bb_lowerband',     # Bollinger Bands
+            'adx',                              # Average Directional Index
+            'stoch_k', 'stoch_d',               # Stochastic
+            'atr',                              # Average True Range
+            'volume'                            # Volume
+        ]
         
-        for col in indicator_cols:
-            if col in row.index:
+        # Extract all available indicators from the row
+        for col in row.index:
+            # Check if column name matches any of our indicator patterns
+            if any(pattern in col.lower() for pattern in ['sma', 'ema', 'rsi', 'macd', 'bb_', 'adx', 'stoch', 'atr']):
                 value = row[col]
                 # Convert numpy types to Python types for JSON serialization
                 if pd.notna(value):
