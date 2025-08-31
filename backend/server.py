@@ -773,7 +773,8 @@ async def analyze_all_strategies():
     for strategy_id, strategy in app.state.freqtrade_strategies.items():
         try:
             symbol = getattr(strategy, 'lumatrade_config', {}).get('symbol', 'BTC/USD')
-            ohlcv_data = await convert_lumatrade_to_ohlcv(symbol)
+            timeframe = getattr(strategy, 'timeframe', '5m')
+            ohlcv_data = await convert_lumatrade_to_ohlcv(symbol, timeframe)
             
             if not ohlcv_data.empty:
                 metadata = {'pair': symbol, 'timeframe': strategy.timeframe}
