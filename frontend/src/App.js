@@ -516,8 +516,8 @@ const Dashboard = () => {
         <div className="lg:col-span-3">
           <PriceDisplay 
             symbol="BTC/USD"
-            price={currentPrice?.price || 111191}
-            change={currentPrice?.price_24h_change || -0.48}
+            price={currentPrice?.price || 108948}
+            change={currentPrice?.price_24h_change || 0.10}
           />
           <Chart 
             timeframe={selectedTimeframe}
