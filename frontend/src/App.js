@@ -846,6 +846,7 @@ const Dashboard = () => {
             cryptoData={cryptoData}
             onCryptoSelect={handleCryptoSelect}
           />
+          
           {/* Crypto Selector */}
           <div className="flex gap-2 mb-4 flex-wrap">
             {cryptoData.slice(0, 8).map((crypto) => (
@@ -872,11 +873,42 @@ const Dashboard = () => {
         </div>
 
         {/* Trading Panel */}
-        <div className="space-y-6">
-          <TradingPanel 
-            walletConnected={walletConnected}
-            onConnectWallet={handleConnectWallet}
-          />
+        <div className="lg:col-span-2">
+          <div className="space-y-6">
+            {/* Freqtrade Panel Toggle */}
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowFreqtradePanel(!showFreqtradePanel)}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  showFreqtradePanel
+                    ? 'bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)]'
+                    : 'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]'
+                }`}
+              >
+                🤖 {showFreqtradePanel ? 'Hide' : 'Show'} Freqtrade
+              </button>
+            </div>
+
+            {/* Freqtrade Panel */}
+            {showFreqtradePanel && (
+              <FreqtradePanel
+                strategies={freqtradeStrategies}
+                selectedStrategy={selectedStrategy}
+                onSelectStrategy={setSelectedStrategy}
+                onCreateStrategy={createFreqtradeStrategy}
+                onAnalyzeStrategy={analyzeStrategy}
+                analysis={strategyAnalysis}
+              />
+            )}
+
+            {/* Original Trading Panel */}
+            {!showFreqtradePanel && (
+              <TradingPanel 
+                walletConnected={walletConnected}
+                onConnectWallet={handleConnectWallet}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
