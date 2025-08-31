@@ -836,8 +836,8 @@ const Dashboard = () => {
         onOpenDyDx={handleOpenDyDx}
       />
       
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Chart Section */}
         <div className="lg:col-span-3">
           <PriceDisplay 
             symbol={selectedCrypto}
