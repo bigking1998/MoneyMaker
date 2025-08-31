@@ -839,18 +839,73 @@ const Dashboard = () => {
   };
 
   const analyzeStrategy = async (strategyId) => {
+    setIsAnalyzing(true);
     try {
       const response = await fetch(`${BACKEND_URL}/api/freqtrade/strategy/${strategyId}/analyze`, {
         method: 'POST',
       });
       const data = await response.json();
       if (data.success) {
-        setStrategyAnalysis(data.analysis);
-        return data.analysis;
+        const analysis = data.analysis;
+        setStrategyAnalysis(analysis);
+        
+        // Add to analysis history
+        const newAnalysis = {
+          id: Date.now(),
+          timestamp: new Date().toISOString(),
+          strategyId,
+          signal: analysis.signal,
+          price: analysis.current_price,
+          indicators: analysis.indicators,
+          entry_signals: analysis.entry_signals,
+          exit_signals: analysis.exit_signals
+        };
+        setAnalysisHistory(prev => [newAnalysis, ...prev.slice(0, 9)]); // Keep last 10
+        
+        // Simulate potential trade if this was a buy/sell signal
+        if (analysis.signal === 'buy' || analysis.signal === 'sell') {
+          const potentialTrade = {
+            id: Date.now(),
+            type: analysis.signal,
+            price: analysis.current_price,
+            symbol: analysis.symbol,
+            timestamp: new Date().toISOString(),
+            indicators: analysis.indicators,
+            reason: getTradeReason(analysis)
+          };
+          setTradeHistory(prev => [potentialTrade, ...prev.slice(0, 19)]); // Keep last 20
+        }
+        
+        return analysis;
       }
     } catch (error) {
       console.error('Error analyzing strategy:', error);
+    } finally {
+      setIsAnalyzing(false);
     }
+  };
+
+  // Helper function to explain why a trade signal was generated
+  const getTradeReason = (analysis) => {
+    const { indicators, signal } = analysis;
+    const rsi = indicators?.rsi;
+    const sma30 = indicators?.sma30;
+    const currentPrice = analysis.current_price;
+    
+    if (signal === 'buy') {
+      if (rsi && rsi < 30) {
+        return `RSI oversold (${rsi.toFixed(1)}) + Price above SMA30`;
+      } else if (sma30 && currentPrice > sma30) {
+        return `Price above SMA30 trend`;
+      }
+      return 'Entry conditions met';
+    } else if (signal === 'sell') {
+      if (rsi && rsi > 70) {
+        return `RSI overbought (${rsi.toFixed(1)})`;
+      }
+      return 'Exit conditions met';
+    }
+    return 'Signal generated';
   };
 
   // Load freqtrade strategies on mount
