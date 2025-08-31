@@ -659,6 +659,9 @@ const Dashboard = () => {
   const [selectedStrategy, setSelectedStrategy] = useState(null);
   const [strategyAnalysis, setStrategyAnalysis] = useState(null);
   const [showFreqtradePanel, setShowFreqtradePanel] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [tradeHistory, setTradeHistory] = useState([]);
+  const [analysisHistory, setAnalysisHistory] = useState([]);
 
   // Initialize DyDx service
   useEffect(() => {
