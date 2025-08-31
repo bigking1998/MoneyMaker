@@ -141,10 +141,10 @@ const PriceDisplay = ({ symbol = "BTC/USD", price = 111191, change = -0.48, subP
           </div>
           <span className="text-2xl font-semibold text-[var(--color-text-primary)]">$</span>
         </div>
-        <div className="relative">
+        <div className="relative group">
           <span className="text-2xl font-semibold text-[var(--color-text-primary)] cursor-pointer">{symbol}</span>
           {/* Crypto Dropdown */}
-          <div className="absolute top-full left-0 mt-2 bg-[var(--color-surface)] rounded-lg shadow-lg z-10 hidden group-hover:block">
+          <div className="absolute top-full left-0 mt-2 bg-[var(--color-surface)] rounded-lg shadow-lg z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
             {cryptoData.slice(0, 6).map((crypto) => (
               <button
                 key={crypto.symbol}
