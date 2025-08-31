@@ -875,40 +875,50 @@ const Dashboard = () => {
         {/* Trading Panel */}
         <div className="lg:col-span-2">
           <div className="space-y-6">
-            {/* Freqtrade Panel Toggle */}
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowFreqtradePanel(!showFreqtradePanel)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                  showFreqtradePanel
-                    ? 'bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)]'
-                    : 'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]'
-                }`}
-              >
-                🤖 {showFreqtradePanel ? 'Hide' : 'Show'} Freqtrade
-              </button>
+            {/* Freqtrade Panel - MAIN FEATURE */}
+            <FreqtradePanel
+              strategies={freqtradeStrategies}
+              selectedStrategy={selectedStrategy}
+              onSelectStrategy={setSelectedStrategy}
+              onCreateStrategy={createFreqtradeStrategy}
+              onAnalyzeStrategy={analyzeStrategy}
+              analysis={strategyAnalysis}
+            />
+
+            {/* dYdX Connection for Real Trading */}
+            <div className="bg-[var(--color-surface)] rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                  💰 Live Trading Wallet
+                </h3>
+                <button
+                  onClick={handleConnectWallet}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    walletConnected
+                      ? 'bg-green-600 text-white'
+                      : 'bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)] hover:opacity-80'
+                  }`}
+                >
+                  {walletConnected ? `Connected: ${walletAddress?.slice(0, 6)}...${walletAddress?.slice(-4)}` : 'Connect Phantom Wallet'}
+                </button>
+              </div>
+              
+              <div className="text-sm text-[var(--color-text-secondary)]">
+                {walletConnected ? (
+                  <div>
+                    <p className="mb-2">✅ Wallet connected! You can now execute real trades.</p>
+                    <button
+                      onClick={handleOpenDyDx}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      Open dYdX Trading Platform
+                    </button>
+                  </div>
+                ) : (
+                  <p>Connect your Phantom wallet to enable live trading with real money. Test strategies above first!</p>
+                )}
+              </div>
             </div>
-
-            {/* Freqtrade Panel */}
-            {showFreqtradePanel && (
-              <FreqtradePanel
-                strategies={freqtradeStrategies}
-                selectedStrategy={selectedStrategy}
-                onSelectStrategy={setSelectedStrategy}
-                onCreateStrategy={createFreqtradeStrategy}
-                onAnalyzeStrategy={analyzeStrategy}
-                analysis={strategyAnalysis}
-              />
-            )}
-
-            {/* Original Trading Panel */}
-            {!showFreqtradePanel && (
-              <TradingPanel 
-                currentPrice={currentPrice?.price || 108948}
-                walletConnected={walletConnected}
-                onConnectWallet={handleConnectWallet}
-              />
-            )}
           </div>
         </div>
       </div>
