@@ -575,7 +575,33 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Initialize trading system
-strategy_manager.register_strategy_class("dca", DCAStrategy)
+from trading.base_strategy import StrategyConfig
+
+# Basic Trading API Endpoints for Task Testing
+@app.post("/api/trading/strategy-manager/test")
+async def test_strategy_manager():
+    """Test endpoint for strategy manager functionality"""
+    try:
+        # Test basic manager functions
+        summary = strategy_manager.get_lifecycle_summary()
+        registered_types = strategy_manager.get_registered_types()
+        
+        return {
+            "success": True,
+            "message": "Strategy manager is working",
+            "lifecycle_summary": summary,
+            "registered_types": registered_types
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/trading/lifecycle-summary")
+async def get_lifecycle_summary():
+    """Get strategy lifecycle summary"""
+    return {
+        "success": True,
+        "data": strategy_manager.get_lifecycle_summary()
+    }
 
 # Trading API Endpoints
 @app.post("/api/trading/strategies")
