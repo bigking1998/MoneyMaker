@@ -33,3 +33,4 @@ asyncio-throttle>=1.0.2
 ta>=0.10.2
 yfinance>=0.2.40
 websocket-client>=1.8.0
+freqtrade==2025.8
