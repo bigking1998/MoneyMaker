@@ -203,7 +203,7 @@
           comment: "User reports chart times and numbers are not white, black box on chart should be white"
         - working: true
           agent: "main"
-          comment: "Fixed chart axis colors to white (#ffffff), grid colors to white with transparency, tooltip colors to white. Chart line and background are now white as requested."
+          comment: "COMPLETELY FIXED: All chart axis colors white (#ffffff), grid colors white, tooltip colors white, x-axis and y-axis labels all white"
         
   - task: "Fix Phantom Solana wallet integration"
     implemented: true
@@ -219,6 +219,36 @@
         - working: true
           agent: "main"
           comment: "Implemented proper Phantom Solana wallet integration with @solana/wallet-adapter-phantom and @solana/web3.js. Updated connectThroughDyDx to prioritize Phantom Solana connection. Added proper error handling and user guidance."
+
+  - task: "Fix chart price accuracy and real-time data correlation" 
+    implemented: true
+    working: true
+    file: "TradingChart.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "Chart side price numbers don't match real BTC price, showing ~$111k instead of ~$108.9k. Chart needs to use real API data not mock data."
+        - working: true
+          agent: "main"
+          comment: "MAJOR FIX: Completely rewrote TradingChart component to fetch real-time data from API. Chart now shows accurate price range ($107k-$110k) matching real BTC price ($108,948). All crypto pairs show live data."
+
+  - task: "Ensure all crypto has real-time data"
+    implemented: true 
+    working: true
+    file: "server.py, TradingChart.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "user"  
+          comment: "Need all cryptocurrencies to show real-time data, not just BTC"
+        - working: true
+          agent: "main"
+          comment: "SUCCESS: Backend now fetches 9 cryptocurrencies with live prices (BTC, ETH, SOL, ADA, AVAX, MATIC, LINK, UNI, LTC). All display real-time market data from CoinGecko API."
 
 ## metadata:
   created_by: "main_agent"
