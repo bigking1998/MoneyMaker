@@ -138,27 +138,33 @@ async def fetch_crypto_data():
             async with session.get(url, params=params) as response:
                 if response.status == 200:
                     data = await response.json()
+                    successful_coins = 0
                     
                     for coin in data:
                         try:
-                            # Handle None/False values from API
+                            # Handle None/False values from API more robustly
                             current_price = coin.get('current_price')
                             price_change_24h = coin.get('price_change_percentage_24h')
                             total_volume = coin.get('total_volume')
                             market_cap = coin.get('market_cap')
                             symbol = coin.get('symbol')
                             
-                            # Skip coins with invalid data
-                            if (not current_price or current_price is False or 
+                            # Skip coins with invalid data - be more specific about False values
+                            if (current_price is None or current_price is False or 
                                 not symbol or 
+                                not isinstance(current_price, (int, float)) or
                                 current_price <= 0):
                                 continue
                                 
-                            # Convert values safely
-                            price = float(current_price) if current_price else 0
-                            change = float(price_change_24h) if price_change_24h else 0
-                            volume = float(total_volume) if total_volume else 0
-                            cap = float(market_cap) if market_cap else None
+                            # Convert values safely with better validation
+                            price = float(current_price) if current_price and current_price != False else 0
+                            change = float(price_change_24h) if price_change_24h is not None and price_change_24h != False else 0
+                            volume = float(total_volume) if total_volume is not None and total_volume != False else 0
+                            cap = float(market_cap) if market_cap is not None and market_cap != False else None
+                            
+                            # Skip if price is still invalid after conversion
+                            if price <= 0:
+                                continue
                             
                             symbol_pair = symbol.upper() + '/USD'
                             crypto_pair = CryptoPair(
@@ -171,16 +177,25 @@ async def fetch_crypto_data():
                                 market_cap=cap
                             )
                             crypto_data_cache[symbol_pair] = crypto_pair.dict()
+                            successful_coins += 1
                             
                         except Exception as e:
                             # Skip individual coins with errors
-                            logging.warning(f"Error processing coin data: {e}")
+                            logging.warning(f"Error processing coin {coin.get('symbol', 'unknown')}: {e}")
                             continue
                     
-                    logging.info(f"Successfully fetched {len(crypto_data_cache)} crypto pairs")
+                    logging.info(f"Successfully fetched {successful_coins} crypto pairs from CoinGecko API")
+                    
+                    # If we got some real data, don't use fallback
+                    if successful_coins > 0:
+                        return
+                        
+                else:
+                    logging.warning(f"CoinGecko API returned status {response.status}")
                     
         # If still no data, add fallback data
         if not crypto_data_cache:
+            logging.warning("No valid data from CoinGecko, using fallback data")
             await add_fallback_crypto_data()
                         
     except Exception as e:
