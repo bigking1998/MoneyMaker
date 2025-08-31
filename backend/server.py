@@ -575,7 +575,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Initialize trading system
-from trading.base_strategy import StrategyConfig
 
 # Basic Trading API Endpoints for Task Testing
 @app.post("/api/trading/strategy-manager/test")
