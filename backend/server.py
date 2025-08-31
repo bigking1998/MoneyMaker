@@ -145,7 +145,7 @@ async def fetch_crypto_data():
                         ('solana', {'symbol': 'SOL', 'volume': 2000000000}),
                         ('cardano', {'symbol': 'ADA', 'volume': 800000000}),
                         ('avalanche-2', {'symbol': 'AVAX', 'volume': 600000000}),
-                        ('polygon', {'symbol': 'MATIC', 'volume': 500000000}),
+                        ('matic-network', {'symbol': 'MATIC', 'volume': 500000000}),
                         ('chainlink', {'symbol': 'LINK', 'volume': 400000000}),
                         ('uniswap', {'symbol': 'UNI', 'volume': 200000000}),
                         ('litecoin', {'symbol': 'LTC', 'volume': 1500000000})
