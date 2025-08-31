@@ -567,6 +567,156 @@ logger = logging.getLogger(__name__)
 # Initialize trading system
 strategy_manager.register_strategy_class("dca", DCAStrategy)
 
+# Trading API Endpoints
+@app.post("/api/trading/strategies")
+async def create_strategy(strategy_data: dict):
+    """Create a new trading strategy"""
+    try:
+        strategy_type = strategy_data.get("type", "dca")
+        name = strategy_data.get("name", f"Strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+        
+        if strategy_type == "dca":
+            config = DCAConfig(
+                name=name,
+                symbol=strategy_data.get("symbol", "BTC/USD"),
+                dca_amount=strategy_data.get("dca_amount", 50.0),
+                interval_minutes=strategy_data.get("interval_minutes", 60),
+                max_total_investment=strategy_data.get("max_total_investment", 5000.0),
+                only_buy=strategy_data.get("only_buy", True)
+            )
+        else:
+            raise HTTPException(status_code=400, detail=f"Unknown strategy type: {strategy_type}")
+        
+        strategy_id = strategy_manager.create_strategy(strategy_type, config)
+        
+        return {
+            "success": True,
+            "strategy_id": strategy_id,
+            "message": f"Strategy '{name}' created successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/trading/strategies")
+async def get_all_strategies():
+    """Get all trading strategies"""
+    strategies = []
+    for strategy in strategy_manager.get_all_strategies():
+        strategy_info = strategy.get_strategy_info()
+        performance = strategy.get_performance_metrics()
+        strategies.append({**strategy_info, **performance})
+    
+    return {
+        "success": True,
+        "strategies": strategies,
+        "summary": strategy_manager.get_strategy_summary()
+    }
+
+@app.get("/api/trading/strategies/{strategy_id}")
+async def get_strategy(strategy_id: str):
+    """Get detailed information about a specific strategy"""
+    strategy = strategy_manager.get_strategy(strategy_id)
+    if not strategy:
+        raise HTTPException(status_code=404, detail="Strategy not found")
+    
+    return {
+        "success": True,
+        "strategy": {
+            **strategy.get_strategy_info(),
+            **strategy.get_performance_metrics()
+        }
+    }
+
+@app.post("/api/trading/strategies/{strategy_id}/start")
+async def start_strategy(strategy_id: str):
+    """Start a trading strategy"""
+    success = strategy_manager.start_strategy(strategy_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to start strategy")
+    
+    return {"success": True, "message": "Strategy started"}
+
+@app.post("/api/trading/strategies/{strategy_id}/stop")
+async def stop_strategy(strategy_id: str):
+    """Stop a trading strategy"""
+    success = strategy_manager.stop_strategy(strategy_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to stop strategy")
+    
+    return {"success": True, "message": "Strategy stopped"}
+
+@app.post("/api/trading/strategies/{strategy_id}/pause")
+async def pause_strategy(strategy_id: str):
+    """Pause a trading strategy"""
+    success = strategy_manager.pause_strategy(strategy_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to pause strategy")
+    
+    return {"success": True, "message": "Strategy paused"}
+
+@app.post("/api/trading/strategies/{strategy_id}/resume")
+async def resume_strategy(strategy_id: str):
+    """Resume a trading strategy"""
+    success = strategy_manager.resume_strategy(strategy_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to resume strategy")
+    
+    return {"success": True, "message": "Strategy resumed"}
+
+@app.delete("/api/trading/strategies/{strategy_id}")
+async def delete_strategy(strategy_id: str):
+    """Delete a trading strategy"""
+    success = strategy_manager.delete_strategy(strategy_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to delete strategy or strategy is still running")
+    
+    return {"success": True, "message": "Strategy deleted"}
+
+@app.get("/api/trading/pending-trades")
+async def get_pending_trades():
+    """Get all pending trades from all strategies"""
+    return {
+        "success": True,
+        "pending_trades": strategy_manager.get_pending_trades()
+    }
+
+@app.post("/api/trading/execute-trade")
+async def execute_trade(trade_data: dict):
+    """Execute a pending trade (simulated for now)"""
+    try:
+        strategy_id = trade_data["strategy_id"]
+        trade_id = trade_data["trade_id"]
+        executed_price = trade_data["executed_price"]
+        executed_amount = trade_data["executed_amount"]
+        fees = trade_data.get("fees", 0.0)
+        
+        success = strategy_manager.execute_trade(
+            strategy_id, trade_id, executed_price, executed_amount, fees
+        )
+        
+        if not success:
+            raise HTTPException(status_code=400, detail="Failed to execute trade")
+        
+        return {"success": True, "message": "Trade executed successfully"}
+    except KeyError as e:
+        raise HTTPException(status_code=400, detail=f"Missing required field: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/trading/emergency-stop")
+async def emergency_stop():
+    """Emergency stop all trading strategies"""
+    strategy_manager.emergency_stop_all()
+    return {"success": True, "message": "All strategies stopped"}
+
+@app.get("/api/trading/performance")
+async def get_trading_performance():
+    """Get performance metrics for all strategies"""
+    return {
+        "success": True,
+        "performance": strategy_manager.get_all_performance_metrics()
+    }
+
 # Startup event to initialize data fetching
 @app.on_event("startup")
 async def startup_event():
