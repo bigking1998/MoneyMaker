@@ -25,7 +25,7 @@ from trading.base_strategy import StrategyConfig
 # Import freqtrade integration
 from freqtrade_integration.strategy_interface import LumaTradeSampleStrategy
 from freqtrade_integration.real_strategies import REAL_STRATEGIES
-from freqtrade_integration.market_data import market_data_fetcher
+from freqtrade_integration.dydx_market_data import dydx_market_data_fetcher
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -735,7 +735,7 @@ async def convert_lumatrade_to_ohlcv(symbol: str, timeframe: str = '5m', limit: 
     """
     try:
         # Fetch real market data
-        ohlcv_data = await market_data_fetcher.fetch_ohlcv_data(symbol, timeframe, limit)
+        ohlcv_data = await dydx_market_data_fetcher.fetch_ohlcv_data(symbol, timeframe, limit)
         
         if ohlcv_data.empty:
             raise ValueError(f"No market data available for {symbol}")
