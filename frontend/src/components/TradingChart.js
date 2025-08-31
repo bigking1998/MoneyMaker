@@ -217,59 +217,34 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
     scales: {
       x: {
         type: 'time',
-        time: {
-          unit: timeframe === '1h' ? 'minute' : 
-                timeframe === '24h' ? 'hour' :
-                timeframe === '1w' ? 'day' : 'day',
+        adapters: {
+          date: {}
         },
         grid: {
           color: 'rgba(255, 255, 255, 0.1)',
-          borderColor: 'rgba(255, 255, 255, 0.2)',
+        },
+        ticks: {
+          color: '#ffffff',
+          font: {
+            size: 12,
+          }
+        }
+      },
+      y: {
+        position: 'right',
+        beginAtZero: false,
+        grid: {
+          color: 'rgba(255, 255, 255, 0.1)',
         },
         ticks: {
           color: '#ffffff',
           font: {
             size: 12,
             weight: 'bold'
-          }
-        },
-        title: {
-          display: false
-        },
-        border: {
-          color: 'rgba(255, 255, 255, 0.2)'
-        }
-      },
-      y: {
-        position: 'right',
-        min: currentPrice ? currentPrice * 0.95 : undefined,
-        max: currentPrice ? currentPrice * 1.05 : undefined,
-        beginAtZero: false,
-        grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
-          borderColor: 'rgba(255, 255, 255, 0.2)',
-        },
-        ticks: {
-          color: '#ffffff',
-          textStrokeColor: '#ffffff',
-          font: {
-            size: 12,
-            weight: 'bold',
-            family: 'Inter'
           },
-          backdropColor: 'transparent',
           callback: function(value) {
-            return '$' + value.toLocaleString(undefined, {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0
-            });
+            return '$' + Math.round(value).toLocaleString();
           }
-        },
-        title: {
-          display: false
-        },
-        border: {
-          color: 'rgba(255, 255, 255, 0.2)'
         }
       }
     },
