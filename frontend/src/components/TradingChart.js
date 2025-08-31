@@ -295,7 +295,20 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
 
   return (
     <div className="w-full h-full">
-      <Line ref={chartRef} data={chartData} options={options} />
+      <style jsx>{`
+        .chart-container canvas {
+          color: #ffffff !important;
+        }
+        .chart-container .chartjs-axis-label {
+          color: #ffffff !important;
+        }
+        .chart-container .tick {
+          color: #ffffff !important;
+        }
+      `}</style>
+      <div className="chart-container">
+        <Line ref={chartRef} data={chartData} options={options} />
+      </div>
     </div>
   );
 };
