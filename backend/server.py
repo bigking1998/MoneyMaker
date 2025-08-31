@@ -601,11 +601,16 @@ async def create_freqtrade_strategy(strategy_data: dict):
             'stoploss': strategy_data.get('stoploss', -0.10)
         }
         
-        # Create strategy instance
-        if strategy_type == "sample":
+        # Create strategy instance using real strategies
+        if strategy_type in REAL_STRATEGIES:
+            strategy_class = REAL_STRATEGIES[strategy_type]
+            strategy = strategy_class(config)
+        elif strategy_type == "sample":
+            # Keep sample for backward compatibility
             strategy = LumaTradeSampleStrategy(config)
         else:
-            raise HTTPException(status_code=400, detail=f"Unknown freqtrade strategy type: {strategy_type}")
+            available_types = list(REAL_STRATEGIES.keys()) + ["sample"]
+            raise HTTPException(status_code=400, detail=f"Unknown strategy type: {strategy_type}. Available: {available_types}")
         
         # Store strategy in global dict for now (later will use proper storage)
         if not hasattr(app.state, 'freqtrade_strategies'):
