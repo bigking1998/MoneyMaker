@@ -611,7 +611,7 @@ async def create_strategy(strategy_data: dict):
         name = strategy_data.get("name", f"Strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
         
         if strategy_type == "dca":
-            config = DCAConfig(
+            config = StrategyConfig(
                 name=name,
                 symbol=strategy_data.get("symbol", "BTC/USD"),
                 dca_amount=strategy_data.get("dca_amount", 50.0),
