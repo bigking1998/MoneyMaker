@@ -1131,6 +1131,9 @@ const Dashboard = () => {
               onCreateStrategy={createFreqtradeStrategy}
               onAnalyzeStrategy={analyzeStrategy}
               strategyAnalysis={strategyAnalysis}
+              isAnalyzing={isAnalyzing}
+              tradeHistory={tradeHistory}
+              analysisHistory={analysisHistory}
             />
 
             {/* dYdX Connection for Real Trading */}
