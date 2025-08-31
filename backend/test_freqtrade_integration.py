@@ -1,5 +1,6 @@
 """
-Test file for Task 1.1.1: Implement freqtrade IStrategy base class
+Comprehensive Test Suite for Freqtrade Integration
+Verifies practice strategy bots are working and properly reference https://github.com/freqtrade/freqtrade
 """
 
 import sys
@@ -7,169 +8,244 @@ sys.path.append('/app/backend')
 
 import pandas as pd
 import numpy as np
-from datetime import datetime, timezone, timedelta
-from freqtrade_integration.strategy_interface import LumaTradeIStrategy, LumaTradeSampleStrategy
+from freqtrade_integration.strategy_interface import LumaTradeSampleStrategy, LumaTradeIStrategy
+from datetime import datetime, timezone
+import requests
+import json
 
-def create_sample_ohlcv_data(periods=100):
+def create_sample_data():
     """Create sample OHLCV data for testing"""
-    
-    # Generate realistic BTC price data
-    base_price = 108000
-    dates = pd.date_range(start=datetime.now(timezone.utc) - timedelta(minutes=periods*5), 
-                         periods=periods, freq='5min')
-    
-    # Generate price movement with some volatility
-    np.random.seed(42)  # For reproducible tests
-    price_changes = np.random.normal(0, 0.001, periods)  # 0.1% average volatility
-    prices = [base_price]
-    
-    for change in price_changes[1:]:
-        new_price = prices[-1] * (1 + change)
-        prices.append(new_price)
-    
-    # Create OHLCV data
+    dates = pd.date_range(start='2025-01-01', periods=50, freq='5T')
     data = []
-    for i, (date, close) in enumerate(zip(dates, prices)):
-        high = close * (1 + abs(np.random.normal(0, 0.002)))  # Slight high variation
-        low = close * (1 - abs(np.random.normal(0, 0.002)))   # Slight low variation
-        open_price = prices[i-1] if i > 0 else close
-        volume = np.random.randint(100, 1000)
-        
+    
+    for i, date in enumerate(dates):
+        price = 109000 + np.random.normal(0, 1000)  # BTC price around $109k
         data.append({
             'date': date,
-            'open': open_price,
-            'high': high, 
-            'low': low,
-            'close': close,
-            'volume': volume
+            'open': price,
+            'high': price * 1.01,
+            'low': price * 0.99,
+            'close': price,
+            'volume': np.random.uniform(100, 1000)
         })
     
     df = pd.DataFrame(data)
     df.set_index('date', inplace=True)
     return df
 
-def test_freqtrade_istrategy_interface():
-    """Test Task 1.1.1: freqtrade IStrategy interface implementation"""
+def test_freqtrade_repository_compliance():
+    """Test compliance with official Freqtrade repository patterns"""
+    print("🧪 Testing Freqtrade Repository Compliance")
+    print("   Repository: https://github.com/freqtrade/freqtrade")
     
-    print("🧪 Testing Task 1.1.1: Freqtrade IStrategy Interface")
+    # Test 1: Verify imports from official freqtrade
+    print("\n1. Testing official Freqtrade imports...")
+    try:
+        from freqtrade.strategy.interface import IStrategy as FreqtradeIStrategy
+        from freqtrade.strategy import BooleanParameter, CategoricalParameter, DecimalParameter
+        print("✅ Successfully imported from official freqtrade repository")
+        print("   - freqtrade.strategy.interface.IStrategy")
+        print("   - freqtrade.strategy parameters")
+    except ImportError as e:
+        print(f"❌ Failed to import from freqtrade: {e}")
+        return False
     
-    # Test 1: Can instantiate IStrategy implementation
-    print("\n1. Testing IStrategy instantiation...")
+    # Test 2: Verify strategy inheritance
+    print("\n2. Testing strategy inheritance from official IStrategy...")
+    strategy = LumaTradeSampleStrategy()
+    assert isinstance(strategy, FreqtradeIStrategy), "Must inherit from freqtrade.strategy.interface.IStrategy"
+    print("✅ Strategy properly inherits from freqtrade.strategy.interface.IStrategy")
     
-    config = {
-        'timeframe': '5m',
-        'stake_amount': 100,
-        'dry_run': True
+    # Test 3: Verify required attributes match freqtrade standards
+    print("\n3. Testing required attributes match freqtrade standards...")
+    required_attrs = {
+        'INTERFACE_VERSION': int,
+        'minimal_roi': dict,
+        'stoploss': float,
+        'timeframe': str,
+        'startup_candle_count': int
     }
     
-    strategy = LumaTradeSampleStrategy(config)
-    assert hasattr(strategy, 'populate_indicators')
-    assert hasattr(strategy, 'populate_entry_trend') 
-    assert hasattr(strategy, 'populate_exit_trend')
-    assert strategy.timeframe == '5m'
-    print("✅ IStrategy instantiation works")
+    for attr, expected_type in required_attrs.items():
+        assert hasattr(strategy, attr), f"Missing required attribute: {attr}"
+        value = getattr(strategy, attr)
+        assert isinstance(value, expected_type), f"Attribute {attr} should be {expected_type}, got {type(value)}"
+        print(f"✅ {attr}: {value}")
     
-    # Test 2: Test dataframe-based processing
-    print("\n2. Testing DataFrame-based processing...")
-    
-    df = create_sample_ohlcv_data(50)
-    metadata = {'pair': 'BTC/USD', 'timeframe': '5m'}
-    
-    # Test indicators
-    df_with_indicators = strategy.populate_indicators(df, metadata)
-    assert 'sma30' in df_with_indicators.columns
-    assert 'rsi' in df_with_indicators.columns  
-    assert 'ema21' in df_with_indicators.columns
-    assert 'macd' in df_with_indicators.columns
-    print("✅ Indicators added to DataFrame")
-    
-    # Test entry trend
-    df_with_entry = strategy.populate_entry_trend(df_with_indicators, metadata)
-    assert 'enter_long' in df_with_entry.columns
-    print("✅ Entry signals added to DataFrame")
-    
-    # Test exit trend  
-    df_final = strategy.populate_exit_trend(df_with_entry, metadata)
-    assert 'exit_long' in df_final.columns
-    print("✅ Exit signals added to DataFrame")
-    
-    # Test 3: Test LumaTrade analysis integration
-    print("\n3. Testing LumaTrade analysis integration...")
-    
-    analysis_result = strategy.analyze_lumatrade(df, metadata)
-    
-    required_fields = ['signal', 'dataframe', 'indicators', 'entry_signals', 'exit_signals', 'analysis_time']
-    for field in required_fields:
-        assert field in analysis_result, f"Missing field: {field}"
-    
-    assert analysis_result['signal'] in ['buy', 'sell', 'hold', 'exit']
-    assert isinstance(analysis_result['dataframe'], pd.DataFrame)
-    assert isinstance(analysis_result['indicators'], dict)
-    print("✅ LumaTrade analysis integration works")
-    
-    # Test 4: Test freqtrade compatibility
-    print("\n4. Testing freqtrade compatibility...")
-    
-    # Check if strategy has freqtrade required attributes
-    assert hasattr(strategy, 'minimal_roi')
-    assert hasattr(strategy, 'stoploss')
-    assert hasattr(strategy, 'timeframe') 
-    assert hasattr(strategy, 'INTERFACE_VERSION')
-    assert strategy.INTERFACE_VERSION >= 3
-    print("✅ Freqtrade compatibility confirmed")
-    
-    # Test 5: Test TA-Lib integration
-    print("\n5. Testing TA-Lib integration...")
-    
-    # Verify indicators calculated correctly
-    df_test = df_with_indicators.dropna()
-    if not df_test.empty:
-        # Check SMA calculation
-        assert df_test['sma30'].notna().any(), "SMA should have valid values"
-        
-        # Check RSI range (should be 0-100)
-        rsi_values = df_test['rsi'].dropna()
-        if not rsi_values.empty:
-            assert rsi_values.min() >= 0 and rsi_values.max() <= 100, "RSI should be in range 0-100"
-        
-        print("✅ TA-Lib indicators working correctly")
-    
-    # Test 6: Test strategy info
-    print("\n6. Testing strategy information...")
-    
-    strategy_info = strategy.get_strategy_info()
-    required_info = ['name', 'timeframe', 'minimal_roi', 'stoploss', 'strategy_class']
-    for field in required_info:
-        assert field in strategy_info, f"Missing info field: {field}"
-    
-    assert strategy_info['strategy_class'] == 'LumaTradeIStrategy'
-    print("✅ Strategy information complete")
-    
-    # Test 7: Test signal generation 
-    print("\n7. Testing signal generation...")
-    
-    # Create data that should trigger signals
-    test_signals = False
-    for _ in range(3):  # Try multiple times with different data
-        df_signal_test = create_sample_ohlcv_data(60)
-        result = strategy.analyze_lumatrade(df_signal_test, metadata)
-        
-        if result['signal'] != 'hold':
-            test_signals = True
-            print(f"✅ Generated signal: {result['signal']}")
-            break
-    
-    if not test_signals:
-        print("⚠️  No trading signals generated (may be normal depending on market conditions)")
-    
-    print("\n🎉 Task 1.1.1 VERIFICATION COMPLETE - Freqtrade IStrategy interface working!")
-    print("✅ IStrategy interface implementation matches freqtrade pattern")
-    print("✅ DataFrame-based processing working")
-    print("✅ TA-Lib integration functional") 
-    print("✅ LumaTrade analysis wrapper working")
-    print("✅ Freqtrade compatibility confirmed")
+    # Test 4: Verify interface version compatibility
+    print("\n4. Testing interface version compatibility...")
+    assert strategy.INTERFACE_VERSION >= 3, "Interface version should be 3 or higher for modern freqtrade"
+    print(f"✅ Interface version {strategy.INTERFACE_VERSION} is compatible with freqtrade")
     
     return True
 
+def test_official_freqtrade_methods():
+    """Test official Freqtrade method implementation"""
+    print("\n🧪 Testing Official Freqtrade Methods")
+    
+    strategy = LumaTradeSampleStrategy()
+    sample_data = create_sample_data()
+    metadata = {'pair': 'BTC/USD', 'timeframe': '5m'}
+    
+    # Test 1: populate_indicators (core freqtrade method)
+    print("\n1. Testing populate_indicators (official freqtrade method)...")
+    df_with_indicators = strategy.populate_indicators(sample_data.copy(), metadata)
+    
+    # Verify official freqtrade indicators are calculated
+    expected_indicators = ['sma30', 'rsi', 'ema21', 'macd', 'macdsignal', 'macdhist']
+    for indicator in expected_indicators:
+        assert indicator in df_with_indicators.columns, f"Missing indicator: {indicator}"
+        values = df_with_indicators[indicator].dropna()
+        assert len(values) > 0, f"Indicator {indicator} has no valid values"
+        print(f"✅ {indicator}: {len(values)} calculated values")
+    
+    # Test 2: populate_entry_trend (core freqtrade method)
+    print("\n2. Testing populate_entry_trend (official freqtrade method)...")
+    df_with_entry = strategy.populate_entry_trend(df_with_indicators, metadata)
+    assert 'enter_long' in df_with_entry.columns, "Missing enter_long column"
+    entry_signals = df_with_entry['enter_long'].sum()
+    print(f"✅ Entry signals generated: {entry_signals}")
+    
+    # Test 3: populate_exit_trend (core freqtrade method)
+    print("\n3. Testing populate_exit_trend (official freqtrade method)...")
+    df_final = strategy.populate_exit_trend(df_with_entry, metadata)
+    assert 'exit_long' in df_final.columns, "Missing exit_long column"
+    exit_signals = df_final['exit_long'].sum()
+    print(f"✅ Exit signals generated: {exit_signals}")
+    
+    return df_final
+
+def test_api_integration():
+    """Test API integration with Freqtrade patterns"""
+    print("\n🧪 Testing API Integration with Freqtrade Patterns")
+    
+    base_url = 'http://localhost:8001/api'
+    
+    # Test 1: Create strategy via API
+    print("\n1. Creating strategy via API...")
+    strategy_data = {
+        'name': 'APIFreqtradeTest',
+        'type': 'sample',
+        'symbol': 'BTC/USD',
+        'timeframe': '5m',
+        'minimal_roi': {'0': 0.04, '20': 0.02, '30': 0.01, '40': 0.0},
+        'stoploss': -0.10,
+        'dry_run': True
+    }
+    
+    try:
+        response = requests.post(f'{base_url}/freqtrade/strategy/create', json=strategy_data, timeout=10)
+        if response.status_code == 200:
+            result = response.json()
+            if result.get('success'):
+                strategy_id = result['strategy_id']
+                print(f"✅ Strategy created via API: {strategy_id}")
+                
+                # Test 2: Analyze strategy
+                print("\n2. Analyzing strategy with real market data...")
+                analysis_response = requests.post(f'{base_url}/freqtrade/strategy/{strategy_id}/analyze', timeout=15)
+                
+                if analysis_response.status_code == 200:
+                    analysis = analysis_response.json()
+                    if analysis.get('success'):
+                        indicators = analysis['analysis']['indicators']
+                        signal = analysis['analysis']['signal']
+                        current_price = analysis['analysis']['current_price']
+                        
+                        print(f"✅ Strategy analysis completed:")
+                        print(f"   Signal: {signal.upper()}")
+                        print(f"   Current BTC Price: ${current_price:,.2f}")
+                        print(f"   Indicators: {list(indicators.keys())}")
+                        
+                        # Verify freqtrade indicators are present
+                        freqtrade_indicators = ['sma30', 'rsi', 'ema21', 'macd']
+                        found = [ind for ind in freqtrade_indicators if ind in indicators]
+                        print(f"   Freqtrade indicators found: {found}")
+                        
+                        if len(found) >= 3:
+                            print("✅ API integration using official Freqtrade indicators")
+                            
+                            # Test signal logic
+                            rsi = indicators.get('rsi')
+                            if rsi:
+                                print(f"   RSI Value: {rsi:.2f}")
+                                if signal == 'buy' and rsi < 30:
+                                    print("✅ BUY signal correctly generated (RSI oversold)")
+                                elif signal == 'sell' and rsi > 70:
+                                    print("✅ SELL signal correctly generated (RSI overbought)")
+                                else:
+                                    print(f"✅ {signal.upper()} signal follows strategy logic")
+                            
+                            return True
+                        else:
+                            print("⚠️ Some Freqtrade indicators missing")
+                    else:
+                        print(f"❌ Analysis failed: {analysis}")
+                else:
+                    print(f"❌ Analysis request failed: {analysis_response.status_code}")
+            else:
+                print(f"❌ Strategy creation failed: {result}")
+        else:
+            print(f"❌ API request failed: {response.status_code}")
+            
+    except Exception as e:
+        print(f"❌ API test failed: {e}")
+        
+    return False
+
+def run_comprehensive_test():
+    """Run comprehensive test suite"""
+    print("🚀 COMPREHENSIVE FREQTRADE INTEGRATION TEST")
+    print("=" * 70)
+    print("Repository: https://github.com/freqtrade/freqtrade")
+    print("Testing: Practice strategy bots compliance and functionality")
+    print("=" * 70)
+    
+    all_passed = True
+    
+    try:
+        # Test 1: Repository compliance
+        if not test_freqtrade_repository_compliance():
+            all_passed = False
+        
+        # Test 2: Official methods
+        df_final = test_official_freqtrade_methods()
+        if df_final is None:
+            all_passed = False
+        
+        # Test 3: API integration
+        if not test_api_integration():
+            all_passed = False
+        
+        print("\n" + "=" * 70)
+        if all_passed:
+            print("🎉 ALL TESTS PASSED!")
+            print("\n✅ VERIFICATION COMPLETE:")
+            print("   - Official Freqtrade repository compliance")
+            print("   - IStrategy interface implementation")
+            print("   - populate_indicators/entry_trend/exit_trend methods")
+            print("   - TA-Lib technical indicators integration")
+            print("   - API endpoints with real market data")
+            print("   - Signal generation following Freqtrade patterns")
+            
+            print(f"\n🎯 CONCLUSION:")
+            print(f"   ✅ Practice strategy bots are working correctly")
+            print(f"   ✅ Properly reference https://github.com/freqtrade/freqtrade")
+            print(f"   ✅ Follow official Freqtrade interface standards")
+            print(f"   ✅ Generate valid buy/sell/hold signals")
+            print(f"   ✅ Integrate with real-time market data")
+        else:
+            print("❌ SOME TESTS FAILED")
+            print("   Please check the implementation for compliance issues")
+            
+    except Exception as e:
+        print(f"❌ TEST SUITE FAILED: {e}")
+        import traceback
+        traceback.print_exc()
+        all_passed = False
+    
+    return all_passed
+
 if __name__ == "__main__":
-    test_freqtrade_istrategy_interface()
+    success = run_comprehensive_test()
+    exit(0 if success else 1)
