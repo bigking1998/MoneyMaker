@@ -223,7 +223,215 @@ const Chart = ({ timeframe = "1h", onTimeframeChange, symbol = "ETH/USD" }) => {
 };
 
 // Exchange List Component
-const ExchangeList = ({ exchanges = [] }) => {
+const FreqtradePanel = ({ 
+  strategies, 
+  selectedStrategy, 
+  onSelectStrategy, 
+  onCreateStrategy, 
+  onAnalyzeStrategy, 
+  analysis 
+}) => {
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newStrategy, setNewStrategy] = useState({
+    name: '',
+    symbol: 'BTC/USD',
+    timeframe: '5m',
+    stake_amount: 100
+  });
+
+  const handleCreateStrategy = async () => {
+    const result = await onCreateStrategy({
+      ...newStrategy,
+      type: 'sample',
+      dry_run: true
+    });
+    if (result) {
+      setShowCreateForm(false);
+      setNewStrategy({ name: '', symbol: 'BTC/USD', timeframe: '5m', stake_amount: 100 });
+    }
+  };
+
+  const getSignalColor = (signal) => {
+    switch(signal) {
+      case 'buy': return 'text-green-400';
+      case 'sell': return 'text-red-400';
+      case 'exit': return 'text-yellow-400';
+      default: return 'text-gray-400';
+    }
+  };
+
+  const getSignalIcon = (signal) => {
+    switch(signal) {
+      case 'buy': return '📈';
+      case 'sell': return '📉';
+      case 'exit': return '🚪';
+      default: return '⏸️';
+    }
+  };
+
+  return (
+    <div className="bg-[var(--color-surface)] rounded-lg p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
+          🤖 Freqtrade Strategies
+        </h3>
+        <button
+          onClick={() => setShowCreateForm(!showCreateForm)}
+          className="px-4 py-2 bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)] rounded-lg font-medium hover:opacity-80"
+        >
+          {showCreateForm ? 'Cancel' : 'New Strategy'}
+        </button>
+      </div>
+
+      {/* Create Strategy Form */}
+      {showCreateForm && (
+        <div className="mb-6 p-4 bg-[var(--color-surface-elevated)] rounded-lg">
+          <h4 className="text-lg font-medium mb-3 text-[var(--color-text-primary)]">Create Freqtrade Strategy</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Strategy Name"
+              value={newStrategy.name}
+              onChange={(e) => setNewStrategy({...newStrategy, name: e.target.value})}
+              className="px-3 py-2 bg-[var(--color-primary-bg)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)]"
+            />
+            <select
+              value={newStrategy.symbol}
+              onChange={(e) => setNewStrategy({...newStrategy, symbol: e.target.value})}
+              className="px-3 py-2 bg-[var(--color-primary-bg)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)]"
+            >
+              <option value="BTC/USD">BTC/USD</option>
+              <option value="ETH/USD">ETH/USD</option>
+              <option value="SOL/USD">SOL/USD</option>
+            </select>
+            <select
+              value={newStrategy.timeframe}
+              onChange={(e) => setNewStrategy({...newStrategy, timeframe: e.target.value})}
+              className="px-3 py-2 bg-[var(--color-primary-bg)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)]"
+            >
+              <option value="1m">1 Minute</option>
+              <option value="5m">5 Minutes</option>
+              <option value="15m">15 Minutes</option>
+              <option value="1h">1 Hour</option>
+            </select>
+            <input
+              type="number"
+              placeholder="Stake Amount ($)"
+              value={newStrategy.stake_amount}
+              onChange={(e) => setNewStrategy({...newStrategy, stake_amount: parseFloat(e.target.value)})}
+              className="px-3 py-2 bg-[var(--color-primary-bg)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)]"
+            />
+          </div>
+          <button
+            onClick={handleCreateStrategy}
+            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Create Strategy
+          </button>
+        </div>
+      )}
+
+      {/* Strategies List */}
+      <div className="space-y-3">
+        {strategies.map((strategy) => (
+          <div
+            key={strategy.id}
+            className={`p-4 rounded-lg border cursor-pointer transition-all ${
+              selectedStrategy?.id === strategy.id 
+                ? 'border-[var(--color-accent-lime)] bg-[var(--color-accent-lime)]/10' 
+                : 'border-[var(--color-border)] hover:border-[var(--color-accent-lime)]/50'
+            }`}
+            onClick={() => onSelectStrategy(strategy)}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-medium text-[var(--color-text-primary)]">{strategy.name}</h4>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-[var(--color-text-secondary)]">{strategy.timeframe}</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAnalyzeStrategy(strategy.id);
+                  }}
+                  className="px-3 py-1 bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)] rounded text-sm font-medium"
+                >
+                  Analyze
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-4">
+                <span className="text-[var(--color-text-secondary)]">Stoploss: {(strategy.stoploss * 100).toFixed(1)}%</span>
+                <span className="text-[var(--color-text-secondary)]">Trades: {strategy.trade_count || 0}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Strategy Analysis Results */}
+      {analysis && (
+        <div className="mt-6 p-4 bg-[var(--color-surface-elevated)] rounded-lg">
+          <h4 className="text-lg font-medium mb-3 text-[var(--color-text-primary)]">Latest Analysis</h4>
+          
+          {/* Signal */}
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">{getSignalIcon(analysis.signal)}</span>
+            <div>
+              <div className={`text-xl font-bold ${getSignalColor(analysis.signal)}`}>
+                {analysis.signal.toUpperCase()}
+              </div>
+              <div className="text-sm text-[var(--color-text-secondary)]">
+                {analysis.symbol} • ${analysis.current_price?.toLocaleString()}
+              </div>
+            </div>
+          </div>
+
+          {/* Indicators */}
+          {analysis.indicators && (
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              {Object.entries(analysis.indicators).map(([key, value]) => (
+                <div key={key} className="flex justify-between">
+                  <span className="text-[var(--color-text-secondary)] capitalize">{key.replace('_', ' ')}:</span>
+                  <span className="text-[var(--color-text-primary)] font-medium">
+                    {typeof value === 'number' ? value.toFixed(2) : value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Entry/Exit Signals */}
+          <div className="flex items-center gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-[var(--color-text-secondary)]">Entry:</span>
+              <span className={analysis.entry_signals?.enter_long ? 'text-green-400' : 'text-gray-400'}>
+                Long {analysis.entry_signals?.enter_long ? '✅' : '❌'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[var(--color-text-secondary)]">Exit:</span>
+              <span className={analysis.exit_signals?.exit_long ? 'text-red-400' : 'text-gray-400'}>
+                Long {analysis.exit_signals?.exit_long ? '✅' : '❌'}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-3 text-xs text-[var(--color-text-tertiary)]">
+            Updated: {new Date(analysis.analysis_time).toLocaleTimeString()}
+          </div>
+        </div>
+      )}
+
+      {strategies.length === 0 && !showCreateForm && (
+        <div className="text-center py-8 text-[var(--color-text-secondary)]">
+          <div className="text-4xl mb-2">🤖</div>
+          <p>No freqtrade strategies yet.</p>
+          <p className="text-sm">Create your first automated trading strategy!</p>
+        </div>
+      )}
+    </div>
+  );
+};
   const defaultExchanges = [
     { exchange: "UniSwap", symbol: "BTC/USD", price: 3615.32, amount: "1.6254 ETH", status: "limited", volume: "$5,875.00" },
     { exchange: "SushiSwap", symbol: "BTC/USD", price: 3617.12, amount: "1.6203 ETH", status: "trending", volume: "$5,860.12" },
