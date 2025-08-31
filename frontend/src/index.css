@@ -280,3 +280,19 @@ canvas {
   color: #ffffff !important;
   fill: #ffffff !important;
 }
+
+/* More aggressive Chart.js text color overrides */
+canvas text {
+  fill: #ffffff !important;
+}
+
+/* Target Chart.js canvas specifically */
+div[class*="chart"] canvas,
+div[class*="Chart"] canvas {
+  color: #ffffff !important;
+}
+
+/* Override any dark text in charts */
+.chart-wrapper * {
+  color: #ffffff !important;
+}
