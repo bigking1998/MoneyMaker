@@ -489,9 +489,31 @@ const FreqtradeTradingPanel = ({
   onSelectStrategy, 
   onCreateStrategy, 
   onAnalyzeStrategy, 
-  strategyAnalysis 
+  strategyAnalysis,
+  isAnalyzing = false,
+  tradeHistory = [],
+  analysisHistory = []
 }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('strategies'); // 'strategies', 'analysis', 'trades'
+
+  const getSignalColor = (signal) => {
+    switch(signal) {
+      case 'buy': return 'text-green-400';
+      case 'sell': return 'text-red-400';
+      case 'exit': return 'text-yellow-400';
+      default: return 'text-gray-400';
+    }
+  };
+
+  const getSignalIcon = (signal) => {
+    switch(signal) {
+      case 'buy': return '📈';
+      case 'sell': return '📉';
+      case 'exit': return '🚪';
+      default: return '⏸️';
+    }
+  };
 
   return (
     <div className="bg-[var(--color-surface)] rounded-lg p-6">
@@ -505,6 +527,27 @@ const FreqtradeTradingPanel = ({
         >
           {showCreateForm ? 'Cancel' : 'Create Strategy'}
         </button>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="flex mb-4 bg-[var(--color-surface-elevated)] rounded-lg p-1">
+        {[
+          { key: 'strategies', label: 'Strategies', icon: '🤖' },
+          { key: 'analysis', label: 'Analysis', icon: '📊' },
+          { key: 'trades', label: 'Signals', icon: '📈' }
+        ].map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all ${
+              activeTab === tab.key
+                ? 'bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)]'
+                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+            }`}
+          >
+            {tab.icon} {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Create Strategy Form */}
@@ -552,90 +595,191 @@ const FreqtradeTradingPanel = ({
         </div>
       )}
 
-      {/* Existing Strategies */}
-      <div className="space-y-3">
-        {freqtradeStrategies.length > 0 ? (
-          freqtradeStrategies.map((strategy, index) => (
-            <div
-              key={strategy.id || index}
-              className="p-4 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-accent-lime)]/50 cursor-pointer"
-              onClick={() => onSelectStrategy && onSelectStrategy(strategy)}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-[var(--color-text-primary)]">
-                  {strategy.name || 'Trading Strategy'}
-                </h4>
-                <button
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    if (onAnalyzeStrategy) {
-                      await onAnalyzeStrategy(strategy.id);
-                    }
-                  }}
-                  className="px-3 py-1 bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)] rounded text-sm font-medium hover:opacity-80"
-                >
-                  Analyze
-                </button>
-              </div>
-              <div className="flex items-center gap-4 text-sm text-[var(--color-text-secondary)]">
-                <span>{strategy.timeframe || '5m'}</span>
-                <span>Stop: {((strategy.stoploss || -0.1) * 100).toFixed(1)}%</span>
-                <span>Trades: {strategy.trade_count || 0}</span>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="text-center py-8 text-[var(--color-text-secondary)]">
-            <div className="text-6xl mb-3">🤖</div>
-            <p className="text-lg mb-2">No Trading Bots Yet</p>
-            <p className="text-sm">Create your first automated trading strategy!</p>
-          </div>
-        )}
-      </div>
-
-      {/* Analysis Results */}
-      {strategyAnalysis && (
-        <div className="mt-6 p-4 bg-[var(--color-surface-elevated)] rounded-lg">
-          <h4 className="text-lg font-medium mb-3 text-[var(--color-text-primary)]">
-            🔍 Live Analysis
-          </h4>
-          
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-3xl">
-              {strategyAnalysis.signal === 'buy' ? '📈' : 
-               strategyAnalysis.signal === 'sell' ? '📉' : '⏸️'}
-            </span>
-            <div>
-              <div className={`text-xl font-bold ${
-                strategyAnalysis.signal === 'buy' ? 'text-green-400' : 
-                strategyAnalysis.signal === 'sell' ? 'text-red-400' : 'text-gray-400'
-              }`}>
-                {(strategyAnalysis.signal || 'hold').toUpperCase()}
-              </div>
-              <div className="text-sm text-[var(--color-text-secondary)]">
-                {strategyAnalysis.symbol} • ${(strategyAnalysis.current_price || 0).toLocaleString()}
-              </div>
-            </div>
-          </div>
-
-          {strategyAnalysis.indicators && Object.keys(strategyAnalysis.indicators).length > 0 && (
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              {Object.entries(strategyAnalysis.indicators).map(([key, value]) => (
-                <div key={key} className="flex justify-between">
-                  <span className="text-[var(--color-text-secondary)] capitalize">
-                    {key.replace('_', ' ')}:
-                  </span>
-                  <span className="text-[var(--color-text-primary)] font-medium">
-                    {typeof value === 'number' ? value.toFixed(2) : value}
-                  </span>
+      {/* Tab Content */}
+      {activeTab === 'strategies' && (
+        <div className="space-y-3">
+          {freqtradeStrategies.length > 0 ? (
+            freqtradeStrategies.map((strategy, index) => (
+              <div
+                key={strategy.id || index}
+                className="p-4 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-accent-lime)]/50 cursor-pointer"
+                onClick={() => onSelectStrategy && onSelectStrategy(strategy)}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-[var(--color-text-primary)]">
+                    {strategy.name || 'Trading Strategy'}
+                  </h4>
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (onAnalyzeStrategy) {
+                        await onAnalyzeStrategy(strategy.id);
+                      }
+                    }}
+                    disabled={isAnalyzing}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-all ${
+                      isAnalyzing
+                        ? 'bg-gray-500 text-white opacity-50 cursor-not-allowed'
+                        : 'bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)] hover:opacity-80'
+                    }`}
+                  >
+                    {isAnalyzing ? '⏳ Analyzing...' : 'Analyze'}
+                  </button>
                 </div>
-              ))}
+                <div className="flex items-center gap-4 text-sm text-[var(--color-text-secondary)]">
+                  <span>{strategy.timeframe || '5m'}</span>
+                  <span>Stop: {((strategy.stoploss || -0.1) * 100).toFixed(1)}%</span>
+                  <span>Trades: {strategy.trade_count || 0}</span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-[var(--color-text-secondary)]">
+              <div className="text-6xl mb-3">🤖</div>
+              <p className="text-lg mb-2">No Trading Bots Yet</p>
+              <p className="text-sm">Create your first automated trading strategy!</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Analysis Tab */}
+      {activeTab === 'analysis' && (
+        <div className="space-y-4">
+          {/* Current Analysis */}
+          {strategyAnalysis && (
+            <div className="p-4 bg-[var(--color-surface-elevated)] rounded-lg">
+              <h4 className="text-lg font-medium mb-3 text-[var(--color-text-primary)]">
+                🔍 Live Analysis
+              </h4>
+              
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-3xl">
+                  {getSignalIcon(strategyAnalysis.signal)}
+                </span>
+                <div>
+                  <div className={`text-xl font-bold ${getSignalColor(strategyAnalysis.signal)}`}>
+                    {(strategyAnalysis.signal || 'hold').toUpperCase()}
+                  </div>
+                  <div className="text-sm text-[var(--color-text-secondary)]">
+                    {strategyAnalysis.symbol} • ${(strategyAnalysis.current_price || 0).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Technical Indicators */}
+              {strategyAnalysis.indicators && Object.keys(strategyAnalysis.indicators).length > 0 && (
+                <div className="mb-4">
+                  <h5 className="text-sm font-medium text-[var(--color-text-primary)] mb-2">Technical Indicators</h5>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {Object.entries(strategyAnalysis.indicators).map(([key, value]) => (
+                      <div key={key} className="flex justify-between">
+                        <span className="text-[var(--color-text-secondary)] capitalize">
+                          {key.replace('_', ' ')}:
+                        </span>
+                        <span className="text-[var(--color-text-primary)] font-medium">
+                          {typeof value === 'number' ? value.toFixed(2) : value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Entry/Exit Signals */}
+              <div className="mb-4">
+                <h5 className="text-sm font-medium text-[var(--color-text-primary)] mb-2">Entry/Exit Signals</h5>
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[var(--color-text-secondary)]">Entry Long:</span>
+                    <span className={strategyAnalysis.entry_signals?.enter_long ? 'text-green-400' : 'text-gray-400'}>
+                      {strategyAnalysis.entry_signals?.enter_long ? '✅ Active' : '❌ Inactive'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[var(--color-text-secondary)]">Exit Long:</span>
+                    <span className={strategyAnalysis.exit_signals?.exit_long ? 'text-red-400' : 'text-gray-400'}>
+                      {strategyAnalysis.exit_signals?.exit_long ? '✅ Active' : '❌ Inactive'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-xs text-[var(--color-text-tertiary)]">
+                Updated: {strategyAnalysis.analysis_time ? new Date(strategyAnalysis.analysis_time).toLocaleTimeString() : 'Never'}
+              </div>
             </div>
           )}
 
-          <div className="mt-3 text-xs text-[var(--color-text-tertiary)]">
-            Updated: {strategyAnalysis.analysis_time ? new Date(strategyAnalysis.analysis_time).toLocaleTimeString() : 'Never'}
-          </div>
+          {/* Analysis History */}
+          {analysisHistory.length > 0 && (
+            <div className="p-4 bg-[var(--color-surface-elevated)] rounded-lg">
+              <h5 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Recent Analysis History</h5>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {analysisHistory.slice(0, 5).map((analysis) => (
+                  <div key={analysis.id} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{getSignalIcon(analysis.signal)}</span>
+                      <span className={getSignalColor(analysis.signal)}>
+                        {analysis.signal.toUpperCase()}
+                      </span>
+                      <span className="text-[var(--color-text-secondary)]">
+                        ${analysis.price?.toLocaleString()}
+                      </span>
+                    </div>
+                    <span className="text-[var(--color-text-tertiary)]">
+                      {new Date(analysis.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Trades/Signals Tab */}
+      {activeTab === 'trades' && (
+        <div className="space-y-4">
+          {tradeHistory.length > 0 ? (
+            <div className="p-4 bg-[var(--color-surface-elevated)] rounded-lg">
+              <h4 className="text-lg font-medium mb-3 text-[var(--color-text-primary)]">
+                📈 Trading Signals History
+              </h4>
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {tradeHistory.slice(0, 10).map((trade) => (
+                  <div key={trade.id} className="p-3 bg-[var(--color-primary-bg)] rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{getSignalIcon(trade.type)}</span>
+                        <span className={`font-bold ${getSignalColor(trade.type)}`}>
+                          {trade.type.toUpperCase()}
+                        </span>
+                        <span className="text-[var(--color-text-secondary)]">
+                          {trade.symbol}
+                        </span>
+                      </div>
+                      <span className="text-[var(--color-text-primary)] font-medium">
+                        ${trade.price?.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mb-1">
+                      {trade.reason}
+                    </div>
+                    <div className="text-xs text-[var(--color-text-tertiary)]">
+                      {new Date(trade.timestamp).toLocaleString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-[var(--color-text-secondary)]">
+              <div className="text-6xl mb-3">📈</div>
+              <p className="text-lg mb-2">No Trading Signals Yet</p>
+              <p className="text-sm">Analyze strategies to generate buy/sell signals!</p>
+            </div>
+          )}
         </div>
       )}
     </div>
