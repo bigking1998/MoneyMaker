@@ -241,9 +241,11 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
         },
         ticks: {
           color: '#ffffff',
+          textStrokeColor: '#ffffff',
           font: {
             size: 12,
-            weight: 'bold'
+            weight: 'bold',
+            family: 'Inter'
           },
           callback: function(value) {
             return '$' + value.toLocaleString(undefined, {
