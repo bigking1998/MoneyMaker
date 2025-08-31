@@ -282,7 +282,12 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
 
   return (
     <div className="w-full h-full chart-wrapper" style={{color: '#ffffff'}}>
-      <Line ref={chartRef} data={chartData} options={options} />
+      <Line 
+        ref={chartRef} 
+        data={chartData} 
+        options={options}
+        plugins={[whiteTextPlugin]}
+      />
     </div>
   );
 };
