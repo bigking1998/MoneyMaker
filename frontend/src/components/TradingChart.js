@@ -71,32 +71,36 @@ const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
           const step = timeStep[timeframe] || timeStep['24h'];
           const data = [];
           
-          // Start from a price slightly different from current and work toward current price
-          const maxVariation = currentPrice * 0.05; // 5% variation
+          // More realistic price variation - smaller range
+          const maxVariation = currentPrice * 0.02; // Only 2% variation
           let basePrice = currentPrice - (Math.random() * maxVariation - maxVariation / 2);
 
           for (let i = interval; i >= 0; i--) {
             const timestamp = now - (i * step);
             
-            // Create realistic price movement toward current price
-            const targetPrice = currentPrice;
-            const volatility = symbol.includes('BTC') ? currentPrice * 0.01 : currentPrice * 0.02; // BTC less volatile than alts
+            // Create more realistic price movement
+            const volatility = symbol.includes('BTC') ? currentPrice * 0.005 : currentPrice * 0.01; // Even smaller movements
             
-            // Gradually move toward target price with some randomness
-            const priceChange = (targetPrice - basePrice) * (0.1 + Math.random() * 0.1) + 
-                               (Math.random() - 0.5) * volatility;
+            // Small random walk toward current price
+            const targetDirection = (currentPrice - basePrice) * 0.05;
+            const randomChange = (Math.random() - 0.5) * volatility;
+            basePrice += targetDirection + randomChange;
             
-            basePrice += priceChange;
+            // Keep within reasonable bounds
+            const minPrice = currentPrice * 0.98;
+            const maxPrice = currentPrice * 1.02;
+            basePrice = Math.max(minPrice, Math.min(maxPrice, basePrice));
             
             data.push({
               x: new Date(timestamp),
-              y: Math.max(basePrice, currentPrice * 0.95) // Don't go too far below current
+              y: basePrice
             });
           }
           
-          // Ensure the last point is close to current price
-          if (data.length > 0) {
-            data[data.length - 1].y = currentPrice + (Math.random() - 0.5) * (currentPrice * 0.002);
+          // Ensure the last few points trend toward current price
+          for (let i = Math.max(0, data.length - 3); i < data.length; i++) {
+            const progress = (i - (data.length - 3)) / 2;
+            data[i].y = data[i].y * (1 - progress) + currentPrice * progress;
           }
 
           return data;
