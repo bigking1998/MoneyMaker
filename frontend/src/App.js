@@ -546,6 +546,58 @@ const Dashboard = () => {
     setSelectedCrypto(cryptoSymbol);
   };
 
+  // Freqtrade API functions
+  const fetchFreqtradeStrategies = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/freqtrade/strategies`);
+      const data = await response.json();
+      if (data.success) {
+        setFreqtradeStrategies(data.strategies);
+      }
+    } catch (error) {
+      console.error('Error fetching freqtrade strategies:', error);
+    }
+  };
+
+  const createFreqtradeStrategy = async (strategyData) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/freqtrade/strategy/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(strategyData),
+      });
+      const data = await response.json();
+      if (data.success) {
+        await fetchFreqtradeStrategies();
+        return data;
+      }
+    } catch (error) {
+      console.error('Error creating freqtrade strategy:', error);
+    }
+  };
+
+  const analyzeStrategy = async (strategyId) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/freqtrade/strategy/${strategyId}/analyze`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.success) {
+        setStrategyAnalysis(data.analysis);
+        return data.analysis;
+      }
+    } catch (error) {
+      console.error('Error analyzing strategy:', error);
+    }
+  };
+
+  // Load freqtrade strategies on mount
+  useEffect(() => {
+    fetchFreqtradeStrategies();
+  }, []);
+
   if (isLoading) {
     return (
       <div className="p-6">
