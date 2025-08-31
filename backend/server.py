@@ -564,6 +564,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Initialize trading system
+strategy_manager.register_strategy_class("dca", DCAStrategy)
+
 # Startup event to initialize data fetching
 @app.on_event("startup")
 async def startup_event():
