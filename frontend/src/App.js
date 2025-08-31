@@ -186,7 +186,7 @@ const ExchangeList = ({ exchanges = [] }) => {
       {/* Header */}
       <div className="grid grid-cols-5 gap-4 pb-4 border-b border-[var(--color-border)] mb-4 text-sm text-[var(--color-text-tertiary)] font-medium">
         <span>Exchange</span>
-        <span>BNB/USD</span>
+        <span>BTC/USD</span>
         <span>Amount</span>
         <span>Diff</span>
         <span>Volume</span>
