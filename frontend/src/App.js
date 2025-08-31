@@ -482,116 +482,162 @@ const ExchangeList = ({ exchanges = [] }) => {
   );
 };
 
-// Trading Panel Component
-const TradingPanel = ({ walletConnected, onConnectWallet }) => {
-  const [activeTab, setActiveTab] = useState("BUY");
-  
+// Freqtrade Trading Panel Component (Main Feature)
+const FreqtradeTradingPanel = ({ 
+  freqtradeStrategies = [], 
+  selectedStrategy, 
+  onSelectStrategy, 
+  onCreateStrategy, 
+  onAnalyzeStrategy, 
+  strategyAnalysis 
+}) => {
+  const [showCreateForm, setShowCreateForm] = useState(false);
+
   return (
-    <div className="card flex flex-col gap-6">
-      {/* Trade Tabs */}
-      <div className="flex bg-[var(--color-primary-bg)] rounded-lg p-1">
-        {['BUY', 'SELL'].map((tab) => (
-          <button
-            key={tab}
-            className={`flex-1 py-2 px-4 rounded-md border-0 text-sm font-medium cursor-pointer transition-all duration-200 ${
-              tab === activeTab
-                ? 'bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)] font-semibold'
-                : 'bg-transparent text-[var(--color-text-tertiary)]'
-            }`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* ETH Balance */}
-      <div className="card-elevated flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-semantic-info)] to-[#1d4ed8] flex items-center justify-center">
-          <span className="text-white font-bold">Ξ</span>
-        </div>
-        <div className="flex-1">
-          <div className="text-sm text-[var(--color-text-tertiary)] mb-0.5">You Buy</div>
-          <div className="text-xl font-bold text-[var(--color-text-primary)]">12.695</div>
-          <div className="text-sm text-[var(--color-text-tertiary)]">Balance: 293.0187</div>
-        </div>
-        <span className="text-xl text-[var(--color-text-tertiary)]">↓</span>
-      </div>
-
-      {/* USD Balance */}
-      <div className="card-elevated flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-accent-lime)] to-[var(--color-accent-lime-dark)] flex items-center justify-center">
-          <span className="text-[var(--color-primary-bg)] font-bold">$</span>
-        </div>
-        <div className="flex-1">
-          <div className="text-sm text-[var(--color-text-tertiary)] mb-0.5">You Spend</div>
-          <div className="text-xl font-bold text-[var(--color-text-primary)]">9,853.00</div>
-          <div className="text-sm text-[var(--color-text-tertiary)]">Balance: 12,987.21</div>
-        </div>
-      </div>
-
-      {/* Buy Button */}
-      <button className="btn-primary w-full">
-        Buy BTC
-      </button>
-
-      {/* Connect Wallet */}
-      {!walletConnected && (
-        <button 
-          className="flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-br from-[var(--color-accent-lime)] to-[var(--color-accent-lime-dark)] text-[var(--color-primary-bg)] rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
-          onClick={onConnectWallet}
+    <div className="bg-[var(--color-surface)] rounded-lg p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
+          🤖 Freqtrade Trading Bot
+        </h3>
+        <button
+          onClick={() => setShowCreateForm(!showCreateForm)}
+          className="px-4 py-2 bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)] rounded-lg font-medium hover:opacity-80"
         >
-          <span>👻</span>
-          Connect Phantom via DyDx
+          {showCreateForm ? 'Cancel' : 'Create Strategy'}
         </button>
-      )}
-
-      {/* DyDx Account Info */}
-      {walletConnected && (
-        <div className="card-elevated">
-          <div className="text-sm text-[var(--color-text-tertiary)] mb-2">DyDx Account Status</div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-[var(--color-text-tertiary)]">Status</span>
-            <span className="text-xs text-[var(--color-semantic-success)] font-medium">Connected via Phantom</span>
-          </div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-[var(--color-text-tertiary)]">Trading</span>
-            <span className="text-xs text-[var(--color-semantic-success)] font-medium">Ready</span>
-          </div>
-          <button
-            className="btn-secondary w-full text-xs mt-2"
-            onClick={() => window.open('https://dydx.trade/trade/BTC-USD', '_blank')}
-          >
-            Open DyDx Platform →
-          </button>
-        </div>
-      )}
-
-      {/* Trade Info */}
-      <div className="card-elevated">
-        <div className="flex justify-between items-center mb-3">
-          <span className="text-sm text-[var(--color-text-tertiary)]">Available Balance</span>
-          <div className="text-right">
-            <div className="text-lg font-semibold text-[var(--color-text-primary)]">293.0187 ETH</div>
-            <span className="text-xs text-[var(--color-semantic-success)]">+7.45%</span>
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-[var(--color-text-tertiary)]">
-            <span>Estimate fee</span>
-            <span>4.28 USD</span>
-          </div>
-          <div className="flex justify-between text-sm text-[var(--color-text-tertiary)]">
-            <span>You will receive</span>
-            <span>108.35 USD</span>
-          </div>
-          <div className="flex justify-between text-sm text-[var(--color-text-tertiary)]">
-            <span>Spread</span>
-            <span>0%</span>
-          </div>
-        </div>
       </div>
+
+      {/* Create Strategy Form */}
+      {showCreateForm && (
+        <div className="mb-6 p-4 bg-[var(--color-surface-elevated)] rounded-lg">
+          <h4 className="text-lg font-medium mb-3 text-[var(--color-text-primary)]">New Trading Strategy</h4>
+          <div className="space-y-3">
+            <button
+              onClick={async () => {
+                const result = await onCreateStrategy({
+                  name: "BTC SMA-RSI Strategy",
+                  type: "sample",
+                  symbol: "BTC/USD",
+                  timeframe: "5m",
+                  stake_amount: 100,
+                  dry_run: true
+                });
+                if (result) {
+                  setShowCreateForm(false);
+                }
+              }}
+              className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            >
+              📈 Create BTC SMA-RSI Bot
+            </button>
+            <button
+              onClick={async () => {
+                const result = await onCreateStrategy({
+                  name: "ETH MACD Strategy", 
+                  type: "sample",
+                  symbol: "ETH/USD",
+                  timeframe: "15m",
+                  stake_amount: 50,
+                  dry_run: true
+                });
+                if (result) {
+                  setShowCreateForm(false);
+                }
+              }}
+              className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+            >
+              📊 Create ETH MACD Bot  
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Existing Strategies */}
+      <div className="space-y-3">
+        {freqtradeStrategies.length > 0 ? (
+          freqtradeStrategies.map((strategy, index) => (
+            <div
+              key={strategy.id || index}
+              className="p-4 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-accent-lime)]/50 cursor-pointer"
+              onClick={() => onSelectStrategy && onSelectStrategy(strategy)}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium text-[var(--color-text-primary)]">
+                  {strategy.name || 'Trading Strategy'}
+                </h4>
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (onAnalyzeStrategy) {
+                      await onAnalyzeStrategy(strategy.id);
+                    }
+                  }}
+                  className="px-3 py-1 bg-[var(--color-accent-lime)] text-[var(--color-primary-bg)] rounded text-sm font-medium hover:opacity-80"
+                >
+                  Analyze
+                </button>
+              </div>
+              <div className="flex items-center gap-4 text-sm text-[var(--color-text-secondary)]">
+                <span>{strategy.timeframe || '5m'}</span>
+                <span>Stop: {((strategy.stoploss || -0.1) * 100).toFixed(1)}%</span>
+                <span>Trades: {strategy.trade_count || 0}</span>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8 text-[var(--color-text-secondary)]">
+            <div className="text-6xl mb-3">🤖</div>
+            <p className="text-lg mb-2">No Trading Bots Yet</p>
+            <p className="text-sm">Create your first automated trading strategy!</p>
+          </div>
+        )}
+      </div>
+
+      {/* Analysis Results */}
+      {strategyAnalysis && (
+        <div className="mt-6 p-4 bg-[var(--color-surface-elevated)] rounded-lg">
+          <h4 className="text-lg font-medium mb-3 text-[var(--color-text-primary)]">
+            🔍 Live Analysis
+          </h4>
+          
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-3xl">
+              {strategyAnalysis.signal === 'buy' ? '📈' : 
+               strategyAnalysis.signal === 'sell' ? '📉' : '⏸️'}
+            </span>
+            <div>
+              <div className={`text-xl font-bold ${
+                strategyAnalysis.signal === 'buy' ? 'text-green-400' : 
+                strategyAnalysis.signal === 'sell' ? 'text-red-400' : 'text-gray-400'
+              }`}>
+                {(strategyAnalysis.signal || 'hold').toUpperCase()}
+              </div>
+              <div className="text-sm text-[var(--color-text-secondary)]">
+                {strategyAnalysis.symbol} • ${(strategyAnalysis.current_price || 0).toLocaleString()}
+              </div>
+            </div>
+          </div>
+
+          {strategyAnalysis.indicators && Object.keys(strategyAnalysis.indicators).length > 0 && (
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              {Object.entries(strategyAnalysis.indicators).map(([key, value]) => (
+                <div key={key} className="flex justify-between">
+                  <span className="text-[var(--color-text-secondary)] capitalize">
+                    {key.replace('_', ' ')}:
+                  </span>
+                  <span className="text-[var(--color-text-primary)] font-medium">
+                    {typeof value === 'number' ? value.toFixed(2) : value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-3 text-xs text-[var(--color-text-tertiary)]">
+            Updated: {strategyAnalysis.analysis_time ? new Date(strategyAnalysis.analysis_time).toLocaleTimeString() : 'Never'}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
