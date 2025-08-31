@@ -29,6 +29,17 @@ ChartJS.register(
 // Set Chart.js defaults for white text
 ChartJS.defaults.color = '#ffffff';
 
+// Plugin to force white text on all chart elements
+const whiteTextPlugin = {
+  id: 'whiteText',
+  beforeDraw(chart) {
+    const ctx = chart.ctx;
+    // Force canvas text color to white
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#ffffff';
+  }
+};
+
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const TradingChart = ({ symbol = 'BTC/USD', timeframe = '1h' }) => {
