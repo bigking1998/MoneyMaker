@@ -663,7 +663,8 @@ async def analyze_freqtrade_strategy(strategy_id: str):
         symbol = getattr(strategy, 'lumatrade_config', {}).get('symbol', 'BTC/USD')
         
         # Convert LumaTrade price data to OHLCV DataFrame format
-        ohlcv_data = await convert_lumatrade_to_ohlcv(symbol)
+        timeframe = getattr(strategy, 'timeframe', '5m')
+        ohlcv_data = await convert_lumatrade_to_ohlcv(symbol, timeframe)
         
         if ohlcv_data.empty:
             raise HTTPException(status_code=400, detail="No market data available")
